@@ -8,7 +8,8 @@
 
 - `app/` Flutter 客户端
 - `backend/` API、领域状态机、RAG、知识库种子
-- `docs/superpowers/` 设计规格
+- `doc/` 产品需求、架构、详设、接口、用户手册、开发记录、Backlog（含 `.docx`）
+- `docs/superpowers/` 早期设计草稿
 
 ## 后端
 
