@@ -22,23 +22,28 @@ function clone(obj) {
 class Database {
   constructor() {
     this.mode = 'local'
+    this.cloudReady = false
     this.state = emptyState()
     this.ready = false
     this._watchers = []
   }
 
   async init() {
+    this.cloudReady = false
     if (config.cloudEnv && typeof wx !== 'undefined' && wx.cloud) {
       try {
         wx.cloud.init({ env: config.cloudEnv, traceUser: true })
-        this.mode = 'cloud'
-        await this._loadCloud()
-        this.ready = true
-        this._notify()
-        return this
+        this.cloudReady = true
+        const hasCloudFamily = await this._loadCloud()
+        if (hasCloudFamily) {
+          this.mode = 'cloud'
+          this.ready = true
+          this._notify()
+          return this
+        }
       } catch (err) {
         console.warn('cloud init failed, fallback to local', err)
-        this.mode = 'local'
+        this.cloudReady = false
       }
     }
     this.mode = 'local'
@@ -58,6 +63,7 @@ class Database {
   snapshot() {
     return {
       mode: this.mode,
+      cloudReady: this.cloudReady,
       user: this.state.user,
       family: this.state.family,
       members: this.state.members.slice(),
@@ -133,14 +139,7 @@ class Database {
     }
 
     const memberRes = await db.collection('members').where({ _openid: openid }).limit(1).get()
-    if (!memberRes.data.length) {
-      this.state.family = null
-      this.state.members = []
-      this.state.babies = []
-      this.state.records = []
-      this.state.currentBabyId = ''
-      return
-    }
+    if (!memberRes.data.length) return false
     const member = memberRes.data[0]
     const familyId = member.familyId
     const [familyRes, membersRes, babiesRes] = await Promise.all([
@@ -153,6 +152,7 @@ class Database {
     this.state.babies = babiesRes.data.map((d) => this._fromCloud(d))
     this.state.currentBabyId = wx.getStorageSync('xiaoya_current_baby') || (this.state.babies[0] && this.state.babies[0].id) || ''
     await this._refreshCloudRecords()
+    return true
   }
 
   async _refreshCloudRecords() {
@@ -214,13 +214,14 @@ class Database {
       joinedAt: now
     }
 
-    if (this.mode === 'cloud') {
-      const db = wx.cloud.database()
+    if (this.cloudReady) {
       await wx.cloud.callFunction({
         name: 'createFamily',
         data: { familyName: family.name, inviteCode: code, baby }
       })
-      await this._loadCloud()
+      const ok = await this._loadCloud()
+      if (ok) this.mode = 'cloud'
+      this.persist()
       return this.snapshot()
     }
 
@@ -237,9 +238,11 @@ class Database {
     const normalized = String(code || '').trim().toUpperCase()
     if (!normalized) throw new Error('请输入邀请码')
 
-    if (this.mode === 'cloud') {
+    if (this.cloudReady) {
       await wx.cloud.callFunction({ name: 'joinFamily', data: { inviteCode: normalized } })
-      await this._loadCloud()
+      const ok = await this._loadCloud()
+      if (ok) this.mode = 'cloud'
+      this.persist()
       return this.snapshot()
     }
 

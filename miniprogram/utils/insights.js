@@ -115,16 +115,78 @@ function countRecords(records, from, to) {
   }).length
 }
 
+function compactRecords(records, from, to, limit) {
+  const max = limit || 300
+  return (records || [])
+    .filter((rec) => rec.startAt >= from || (rec.type === 'sleep' && rec.endAt && rec.endAt >= from))
+    .slice(0, max)
+    .map((rec) => ({
+      type: rec.type,
+      subtype: rec.subtype || '',
+      startAt: rec.startAt,
+      endAt: rec.endAt || null,
+      amount: rec.amount,
+      unit: rec.unit || '',
+      durationMin: rec.durationMin,
+      note: rec.note || '',
+      time: format.formatYmd(rec.startAt) + ' ' + format.formatTime(rec.startAt)
+    }))
+}
+
+function resolveRange(key, now) {
+  const n = now != null ? now : Date.now()
+  const to = format.endOfDay(n, n)
+  const today = format.startOfDay(n, n)
+  if (key === '7d') {
+    return { key: '7d', from: format.addDays(today, -6), to, label: '近7天' }
+  }
+  if (key === '30d') {
+    return { key: '30d', from: format.addDays(today, -29), to, label: '近30天' }
+  }
+  return { key: 'week', from: weekStart(n), to, label: '本周' }
+}
+
+function buildAiPayload(baby, records, rangeKey, now) {
+  const n = now != null ? now : Date.now()
+  const range = resolveRange(rangeKey || 'week', n)
+  const agg = stats.aggregate(records, range.from, range.to, n)
+  const genderMap = { girl: '女', boy: '男', unknown: '未填' }
+  return {
+    baby: {
+      name: (baby && baby.name) || '宝宝',
+      gender: genderMap[(baby && baby.gender) || 'unknown'] || '未填',
+      birthday: (baby && baby.birthday) || '未知',
+      age: baby && baby.birthday ? format.ageText(baby.birthday, n) : '未知'
+    },
+    from: range.from,
+    to: range.to,
+    fromText: format.formatYmd(range.from),
+    toText: format.formatYmd(range.to),
+    rangeLabel: range.label,
+    summary: {
+      milkMl: agg.milkMl,
+      milkCount: agg.milkCount,
+      breastMin: agg.breastMin,
+      sleepMin: agg.sleepMin,
+      diaperCount: agg.diaperCount,
+      recordCount: countRecords(records, range.from, range.to)
+    },
+    records: compactRecords(records, range.from, range.to)
+  }
+}
+
 function buildAiPrompt(baby, records, from, to, now) {
+  const payload = buildAiPayload(baby, records, null, now)
+  // keep compatibility when explicit from/to passed
+  const rangeFrom = from != null ? from : payload.from
+  const rangeTo = to != null ? to : payload.to
+  const rebuilt = from != null ? compactRecords(records, rangeFrom, rangeTo) : payload.records
   const name = (baby && baby.name) || '宝宝'
   const genderMap = { girl: '女', boy: '男', unknown: '未填' }
   const gender = genderMap[(baby && baby.gender) || 'unknown'] || '未填'
   const age = baby && baby.birthday ? format.ageText(baby.birthday, now) : '未知'
-  const compact = (records || [])
-    .filter((rec) => rec.startAt >= from || (rec.type === 'sleep' && rec.endAt && rec.endAt >= from))
-    .slice(0, 400)
+  const compact = rebuilt
     .map((rec) => {
-      const time = format.formatYmd(rec.startAt) + ' ' + format.formatTime(rec.startAt)
       const extra = [
         rec.subtype,
         rec.amount != null ? `${rec.amount}${rec.unit || ''}` : '',
@@ -133,23 +195,41 @@ function buildAiPrompt(baby, records, from, to, now) {
       ]
         .filter(Boolean)
         .join(' ')
-      return `- ${time} ${rec.type} ${extra}`.trim()
+      return `- ${rec.time || ''} ${rec.type} ${extra}`.trim()
     })
     .join('\n')
 
   return [
     '你是婴幼儿日常护理的数据分析助手，不是医生。请根据家庭记录给出温和、可执行的观察，不要诊断疾病，不要恐吓。',
     `宝宝：${name}，性别：${gender}，月龄：${age}，生日：${(baby && baby.birthday) || '未知'}。`,
-    `统计区间：${format.formatYmd(from)} 至 ${format.formatYmd(to)}。`,
+    `统计区间：${format.formatYmd(rangeFrom)} 至 ${format.formatYmd(rangeTo)}。`,
     '请按「奶量规律 / 睡眠结构 / 尿布与辅食 / 生长趋势 / 可能漏记」五段写，每段不超过 4 句。最后给 3 条本周可以尝试的小调整。',
     '记录如下：',
     compact || '（本周暂无记录）'
   ].join('\n')
 }
 
+function formatAiText(text) {
+  const cleaned = String(text || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/^\s*#{1,6}\s+/gm, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/^[*-]\s+/gm, '· ')
+    .trim()
+  const paragraphs = cleaned
+    .split(/\n{2,}/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+  return { text: cleaned, paragraphs: paragraphs.length ? paragraphs : (cleaned ? [cleaned] : []) }
+}
+
 module.exports = {
   weekStart,
   buildDaySeries,
   buildReport,
-  buildAiPrompt
+  buildAiPrompt,
+  buildAiPayload,
+  resolveRange,
+  formatAiText,
+  compactRecords
 }

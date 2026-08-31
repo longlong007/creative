@@ -4,3 +4,4 @@ miniprogram_npm/
 *.log
 .idea/
 .vscode/
+cloudfunctions/**/secret.js

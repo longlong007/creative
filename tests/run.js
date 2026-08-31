@@ -161,6 +161,54 @@ async function run() {
     assert(threw)
   })
 
+  await test('resolveRange 7d and 30d', () => {
+    const week = insights.resolveRange('week', now)
+    const d7 = insights.resolveRange('7d', now)
+    const d30 = insights.resolveRange('30d', now)
+    assertEq(week.label, '本周')
+    assertEq(d7.label, '近7天')
+    assertEq(format.formatYmd(d7.from), '2026-08-25')
+    assertEq(format.formatYmd(d30.from), '2026-08-02')
+  })
+
+  await test('buildAiPayload compact records', () => {
+    const baby = { name: '小芽', birthday: '2026-01-01', gender: 'girl' }
+    const records = [
+      { type: 'milk', subtype: 'formula', amount: 120, unit: 'ml', startAt: now - 3600000, durationMin: null, note: '' }
+    ]
+    const payload = insights.buildAiPayload(baby, records, '7d', now)
+    assertEq(payload.baby.name, '小芽')
+    assertEq(payload.summary.milkMl, 120)
+    assertEq(payload.summary.recordCount, 1)
+    assert(payload.records[0].time.indexOf('2026-08-31') !== -1)
+  })
+
+  await test('formatAiText strips markdown', () => {
+    const out = insights.formatAiText('## 奶量规律\n\n**日均偏稳**\n\n- 可能漏记午睡')
+    assert(out.paragraphs.length >= 2)
+    assert(out.text.indexOf('##') === -1)
+    assert(out.text.indexOf('**') === -1)
+    assert(out.text.indexOf('· 可能漏记午睡') !== -1)
+  })
+
+  await test('ai prompt helpers stay in sync', () => {
+    const appPrompt = require('../miniprogram/utils/ai-prompt')
+    const fnPrompt = require('../cloudfunctions/aiAnalyze/prompt')
+    assertEq(appPrompt.SYSTEM_PROMPT, fnPrompt.SYSTEM_PROMPT)
+    assertEq(appPrompt.allowedModel('deepseek-chat'), 'deepseek-v4-flash')
+    assertEq(appPrompt.allowedModel('deepseek-v4-pro'), 'deepseek-v4-pro')
+    const msg = appPrompt.userMessage({
+      baby: { name: '小芽', gender: '女', age: '7个月', birthday: '2026-01-01' },
+      fromText: '2026-08-25',
+      toText: '2026-08-31',
+      rangeLabel: '近7天',
+      summary: { recordCount: 1, milkMl: 120, milkCount: 1, breastMin: 0, sleepMin: 0, diaperCount: 0 },
+      records: [{ time: '2026-08-31 14:00', type: 'milk', subtype: 'formula', amount: 120, unit: 'ml' }]
+    })
+    assert(msg.indexOf('小芽') !== -1)
+    assert(msg.indexOf('120ml') !== -1)
+  })
+
   console.log(`\n${passed} passed, ${failed} failed`)
   if (failed) process.exit(1)
 }

@@ -47,3 +47,71 @@
   padding: 8rpx 0;
   line-height: 1.6;
 }
+
+.ai-card {
+  border: 2rpx solid #F3D3C8;
+}
+
+.ai-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.ai-desc {
+  margin-bottom: 20rpx;
+  line-height: 1.6;
+}
+
+.think {
+  font-size: 22rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: #F3EEE7;
+  color: #8A8178;
+}
+
+.think.on {
+  background: #2C2622;
+  color: #fff;
+}
+
+.ai-btn {
+  margin-top: 24rpx;
+}
+
+.ai-error {
+  color: #C45C4A;
+  margin-top: 16rpx;
+  line-height: 1.6;
+}
+
+.tiny {
+  font-size: 22rpx;
+  margin-top: 12rpx;
+  line-height: 1.6;
+}
+
+.ai-result {
+  margin-top: 28rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #F0E8DE;
+}
+
+.ai-meta {
+  font-size: 22rpx;
+  color: #8A8178;
+  margin-bottom: 16rpx;
+}
+
+.link {
+  color: #E07A5F;
+  padding: 8rpx 0 4rpx;
+}
+
+.alt-btn {
+  margin-top: 20rpx;
+  background: #F3EEE7;
+  color: #2C2622;
+}

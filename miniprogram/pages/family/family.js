@@ -34,7 +34,7 @@ Page({
       members: snap.members,
       babies: snap.babies,
       mode: snap.mode,
-      cloudReady: Boolean(config.cloudEnv)
+      cloudReady: snap.cloudReady || Boolean(config.cloudEnv)
     })
   },
 

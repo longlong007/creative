@@ -44,7 +44,7 @@
 
   <view class="card block">
     <view class="section-title">数据和 AI</view>
-    <view class="link" bindtap="goInsights">查看本周洞察 / 复制给 AI</view>
+    <view class="link" bindtap="goInsights">DeepSeek 分析本周记录</view>
     <view class="link" bindtap="exportData">导出全部记录（JSON）</view>
   </view>
 </view>
