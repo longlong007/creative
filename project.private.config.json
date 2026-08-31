@@ -1,0 +1,8 @@
+{
+  "description": "本地私有配置，可在微信开发者工具中修改 appid 与云环境",
+  "projectname": "xiaoya-ji",
+  "setting": {
+    "compileHotReLoad": true,
+    "urlCheck": false
+  }
+}

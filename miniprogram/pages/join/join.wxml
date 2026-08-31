@@ -1,0 +1,6 @@
+<view class="page">
+  <view class="title">输入家人发你的邀请码</view>
+  <view class="sub">开通云开发后，家里几部手机都能往同一本账里记。</view>
+  <input class="input" maxlength="6" placeholder="例如 7K3MPQ" value="{{code}}" bindinput="onCode" />
+  <button class="btn btn-primary" bindtap="submit">加入</button>
+</view>

@@ -1,0 +1,23 @@
+<view class="page safe-bottom">
+  <view class="chip-row sticky">
+    <view
+      wx:for="{{filters}}"
+      wx:key="key"
+      class="chip {{filter === item.key ? 'on' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="setFilter"
+    >{{item.label}}</view>
+  </view>
+
+  <view wx:if="{{!groups.length}}" class="empty">这一类还没有记录</view>
+
+  <view class="group" wx:for="{{groups}}" wx:key="key">
+    <view class="head">
+      <text class="date">{{item.dateText}}</text>
+      <text class="sum">{{item.summary}}</text>
+    </view>
+    <view class="card">
+      <record-item wx:for="{{item.records}}" wx:for-item="rec" wx:key="id" record="{{rec}}" bind:edit="editRecord" />
+    </view>
+  </view>
+</view>

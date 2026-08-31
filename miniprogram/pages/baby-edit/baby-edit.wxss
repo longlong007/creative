@@ -1,0 +1,21 @@
+.page {
+  padding: 40rpx 32rpx;
+}
+
+.label {
+  color: #8A8178;
+  margin-top: 12rpx;
+}
+
+.input {
+  height: 96rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 0 28rpx;
+  margin: 12rpx 0 28rpx;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+}

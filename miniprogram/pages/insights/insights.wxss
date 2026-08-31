@@ -1,0 +1,49 @@
+.page {
+  padding: 24rpx 28rpx 60rpx;
+}
+
+.lead {
+  font-size: 48rpx;
+  font-weight: 800;
+}
+
+.range {
+  margin: 8rpx 0 24rpx;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.m {
+  padding: 24rpx;
+}
+
+.mv {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 750;
+}
+
+.mk {
+  color: #8A8178;
+  font-size: 22rpx;
+}
+
+.block {
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.p {
+  margin-bottom: 16rpx;
+  line-height: 1.7;
+}
+
+.li {
+  padding: 8rpx 0;
+  line-height: 1.6;
+}

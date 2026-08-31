@@ -1,0 +1,9 @@
+{
+  "desc": "小芽记",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}

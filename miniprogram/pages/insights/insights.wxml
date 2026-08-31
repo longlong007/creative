@@ -1,0 +1,31 @@
+<view class="page">
+  <view class="lead">本周观察</view>
+  <view class="muted range">{{rangeText}}</view>
+
+  <view class="metrics">
+    <view class="card m" wx:for="{{metrics}}" wx:key="key">
+      <text class="mv">{{item.value}}</text>
+      <text class="mk">{{item.label}}</text>
+    </view>
+  </view>
+
+  <view class="card block">
+    <view class="p" wx:for="{{paragraphs}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block" wx:if="{{highlights.length}}">
+    <view class="section-title">亮点</view>
+    <view class="li" wx:for="{{highlights}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block" wx:if="{{suggestions.length}}">
+    <view class="section-title">可以试着做</view>
+    <view class="li" wx:for="{{suggestions}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">交给 AI 深挖</view>
+    <view class="muted">把整理好的记录复制到 ChatGPT、Kimi 或微信里的 AI，就能得到更细的趋势分析。小芽记以后也可以直接接模型。</view>
+    <button class="btn btn-primary" bindtap="copyPrompt">复制分析提示词</button>
+  </view>
+</view>

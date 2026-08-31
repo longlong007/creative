@@ -1,0 +1,133 @@
+page {
+  --bg: #F7F1EA;
+  --surface: #FFFFFF;
+  --ink: #2C2622;
+  --muted: #8A8178;
+  --line: #EDE4D8;
+  --peach: #E07A5F;
+  --peach-deep: #C86850;
+  --peach-soft: #FBE4DC;
+  --sage: #6A9E8A;
+  --sage-soft: #E3F0EA;
+  --sky: #6B86B3;
+  --sky-soft: #E4EAF4;
+  --sand: #C4A882;
+  --sand-soft: #F3EBDD;
+  --danger: #C45C4A;
+  --radius: 32rpx;
+  --shadow: 0 12rpx 40rpx rgba(44, 38, 34, 0.06);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Source Han Sans SC", sans-serif;
+  font-size: 28rpx;
+  line-height: 1.5;
+  min-height: 100%;
+}
+
+.safe-bottom {
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 96rpx;
+  border-radius: 999rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--peach);
+  color: #fff;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.section-title {
+  font-size: 26rpx;
+  color: var(--muted);
+  letter-spacing: 2rpx;
+  margin: 8rpx 8rpx 20rpx;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.chip {
+  padding: 14rpx 28rpx;
+  border-radius: 999rpx;
+  background: #F3EEE7;
+  color: var(--ink);
+  font-size: 26rpx;
+}
+
+.chip.on {
+  background: var(--peach);
+  color: #fff;
+}
+
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(44, 38, 34, 0.35);
+  z-index: 20;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  background: #fff;
+  border-radius: 40rpx 40rpx 0 0;
+  padding: 28rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  transform: translateY(110%);
+  transition: transform 0.22s ease;
+}
+
+.sheet.show {
+  transform: translateY(0);
+}
+
+.sheet-handle {
+  width: 72rpx;
+  height: 8rpx;
+  border-radius: 8rpx;
+  background: #E6DDD3;
+  margin: 0 auto 24rpx;
+}
+
+.sheet-title {
+  font-size: 36rpx;
+  font-weight: 650;
+  margin-bottom: 8rpx;
+}
+
+.sheet-sub {
+  color: var(--muted);
+  margin-bottom: 28rpx;
+  font-size: 26rpx;
+}

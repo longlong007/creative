@@ -1,0 +1,50 @@
+<view class="page safe-bottom" wx:if="{{baby}}">
+  <view class="card baby-card" bindtap="goEditBaby">
+    <view class="avatar {{baby.gender === 'boy' ? 'boy' : 'girl'}}">{{baby.name[0]}}</view>
+    <view class="meta">
+      <view class="name">{{baby.name}}</view>
+      <view class="muted">{{ageText}} · {{baby.birthday}}</view>
+    </view>
+    <text class="edit">编辑</text>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">家庭邀请码</view>
+    <view class="code">{{family.inviteCode}}</view>
+    <view class="muted small" wx:if="{{!cloudReady}}">现在是本机记录。把云开发环境 ID 填进 config.js 后，家人就能用这个码加入。</view>
+    <view class="muted small" wx:else>把码发给家人，加入后记的是同一本账。</view>
+    <view class="row-btns">
+      <button class="btn btn-primary mini" bindtap="copyCode">复制邀请码</button>
+      <button class="btn mini ghost" bindtap="goJoin">我要加入别人的家</button>
+    </view>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">这本账里的人</view>
+    <view class="member" wx:for="{{members}}" wx:key="id">
+      <text>{{item.nickName}}</text>
+      <text class="muted">{{item.role}}</text>
+    </view>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">宝宝</view>
+    <view
+      class="member"
+      wx:for="{{babies}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="switchBaby"
+    >
+      <text>{{item.name}}</text>
+      <text class="muted">{{item.id === baby.id ? '当前' : '切换'}}</text>
+    </view>
+    <view class="link" bindtap="addBaby">再添加一个宝宝</view>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">数据和 AI</view>
+    <view class="link" bindtap="goInsights">查看本周洞察 / 复制给 AI</view>
+    <view class="link" bindtap="exportData">导出全部记录（JSON）</view>
+  </view>
+</view>

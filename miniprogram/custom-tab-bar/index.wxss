@@ -1,0 +1,115 @@
+.bar {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: calc(16rpx + env(safe-area-inset-bottom));
+  height: 112rpx;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 999rpx;
+  box-shadow: 0 12rpx 40rpx rgba(44, 38, 34, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 10;
+  backdrop-filter: blur(20px);
+}
+
+.item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9A9188;
+  font-size: 20rpx;
+  gap: 6rpx;
+}
+
+.item.on {
+  color: #E07A5F;
+  font-weight: 600;
+}
+
+.icon {
+  width: 40rpx;
+  height: 40rpx;
+  position: relative;
+}
+
+.icon.edit::before {
+  content: "";
+  position: absolute;
+  left: 8rpx;
+  top: 6rpx;
+  width: 22rpx;
+  height: 28rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 6rpx;
+}
+
+.icon.time::before {
+  content: "";
+  position: absolute;
+  left: 4rpx;
+  top: 4rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border: 4rpx solid currentColor;
+  border-radius: 50%;
+}
+
+.icon.time::after {
+  content: "";
+  position: absolute;
+  left: 19rpx;
+  top: 10rpx;
+  width: 4rpx;
+  height: 12rpx;
+  background: currentColor;
+  border-radius: 4rpx;
+}
+
+.icon.grow::before {
+  content: "";
+  position: absolute;
+  left: 8rpx;
+  bottom: 4rpx;
+  width: 8rpx;
+  height: 16rpx;
+  background: currentColor;
+  border-radius: 4rpx;
+}
+
+.icon.grow::after {
+  content: "";
+  position: absolute;
+  left: 20rpx;
+  bottom: 4rpx;
+  width: 8rpx;
+  height: 28rpx;
+  background: currentColor;
+  border-radius: 4rpx;
+}
+
+.icon.home::before {
+  content: "";
+  position: absolute;
+  left: 6rpx;
+  top: 14rpx;
+  width: 28rpx;
+  height: 20rpx;
+  border: 4rpx solid currentColor;
+  border-top: none;
+}
+
+.icon.home::after {
+  content: "";
+  position: absolute;
+  left: 10rpx;
+  top: 4rpx;
+  width: 20rpx;
+  height: 20rpx;
+  border-left: 4rpx solid currentColor;
+  border-top: 4rpx solid currentColor;
+  transform: rotate(45deg);
+}

@@ -1,0 +1,38 @@
+.page {
+  padding: 16rpx 28rpx 40rpx;
+}
+
+.sticky {
+  padding: 8rpx 0 20rpx;
+}
+
+.group {
+  margin-bottom: 28rpx;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 8rpx 12rpx;
+}
+
+.date {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.sum {
+  font-size: 22rpx;
+  color: #8A8178;
+}
+
+.card {
+  padding: 8rpx 20rpx;
+}
+
+.empty {
+  text-align: center;
+  color: #8A8178;
+  padding: 80rpx 0;
+}
