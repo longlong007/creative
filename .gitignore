@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Backend
+backend/data/
+backend/.env
+
+# Flutter
+app/.dart_tool/
+app/.idea/
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
