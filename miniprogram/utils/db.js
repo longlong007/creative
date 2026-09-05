@@ -129,7 +129,7 @@ class Database {
 
   async _loadCloud() {
     const db = wx.cloud.database()
-    const login = await wx.cloud.callFunction({ name: 'login' })
+    const login = await wx.cloud.callFunction({ name: 'xiaoyaLogin' })
     const openid = (login.result && login.result.openid) || ''
     this.state.user = {
       id: openid,
@@ -138,14 +138,14 @@ class Database {
       role: '家长'
     }
 
-    const memberRes = await db.collection('members').where({ _openid: openid }).limit(1).get()
+    const memberRes = await db.collection('xiaoya_members').where({ _openid: openid }).limit(1).get()
     if (!memberRes.data.length) return false
     const member = memberRes.data[0]
     const familyId = member.familyId
     const [familyRes, membersRes, babiesRes] = await Promise.all([
-      db.collection('families').doc(familyId).get(),
-      db.collection('members').where({ familyId }).get(),
-      db.collection('babies').where({ familyId }).get()
+      db.collection('xiaoya_families').doc(familyId).get(),
+      db.collection('xiaoya_members').where({ familyId }).get(),
+      db.collection('xiaoya_babies').where({ familyId }).get()
     ])
     this.state.family = this._fromCloud(familyRes.data)
     this.state.members = membersRes.data.map((d) => this._fromCloud(d))
@@ -166,7 +166,7 @@ class Database {
     let all = []
     for (let i = 0; i < 10; i++) {
       const res = await db
-        .collection('records')
+        .collection('xiaoya_records')
         .where({ babyId: baby.id })
         .orderBy('startAt', 'desc')
         .skip(i * PAGE)
@@ -264,7 +264,7 @@ class Database {
     }
     if (this.mode === 'cloud') {
       const db = wx.cloud.database()
-      const res = await db.collection('babies').add({ data: { ...baby, id: undefined } })
+      const res = await db.collection('xiaoya_babies').add({ data: { ...baby, id: undefined } })
       baby.id = res._id
     }
     this.state.babies.push(baby)
@@ -279,7 +279,7 @@ class Database {
     Object.assign(baby, patch, { updatedAt: Date.now() })
     if (this.mode === 'cloud') {
       const db = wx.cloud.database()
-      await db.collection('babies').doc(id).update({ data: patch })
+      await db.collection('xiaoya_babies').doc(id).update({ data: patch })
     }
     this.persist()
     return baby
@@ -327,7 +327,7 @@ class Database {
       const db = wx.cloud.database()
       const data = Object.assign({}, rec)
       delete data.id
-      const res = await db.collection('records').add({ data })
+      const res = await db.collection('xiaoya_records').add({ data })
       rec.id = res._id
     }
 
@@ -346,7 +346,7 @@ class Database {
     if (this.mode === 'cloud') {
       const db = wx.cloud.database()
       const data = Object.assign({}, patch, { updatedAt: rec.updatedAt, durationMin: rec.durationMin })
-      await db.collection('records').doc(id).update({ data })
+      await db.collection('xiaoya_records').doc(id).update({ data })
     }
     this.persist()
     return rec
@@ -356,7 +356,7 @@ class Database {
     this.state.records = this.state.records.filter((r) => r.id !== id)
     if (this.mode === 'cloud') {
       const db = wx.cloud.database()
-      await db.collection('records').doc(id).remove()
+      await db.collection('xiaoya_records').doc(id).remove()
     }
     this.persist()
   }

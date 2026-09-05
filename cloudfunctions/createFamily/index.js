@@ -9,12 +9,12 @@ exports.main = async (event) => {
   const inviteCode = String(event.inviteCode || '').toUpperCase()
   const baby = event.baby || {}
 
-  const existed = await db.collection('members').where({ _openid: OPENID }).count()
+  const existed = await db.collection('xiaoya_members').where({ _openid: OPENID }).count()
   if (existed.total > 0) {
     throw new Error('已经在一个家庭里了')
   }
 
-  const fam = await db.collection('families').add({
+  const fam = await db.collection('xiaoya_families').add({
     data: {
       name: familyName,
       inviteCode,
@@ -23,7 +23,7 @@ exports.main = async (event) => {
     }
   })
 
-  await db.collection('members').add({
+  await db.collection('xiaoya_members').add({
     data: {
       familyId: fam._id,
       nickName: '我',
@@ -32,7 +32,7 @@ exports.main = async (event) => {
     }
   })
 
-  await db.collection('babies').add({
+  await db.collection('xiaoya_babies').add({
     data: {
       familyId: fam._id,
       name: baby.name,

@@ -8,16 +8,16 @@ exports.main = async (event) => {
   const code = String(event.inviteCode || '').trim().toUpperCase()
   if (!code) throw new Error('请输入邀请码')
 
-  const found = await db.collection('families').where({ inviteCode: code }).limit(1).get()
+  const found = await db.collection('xiaoya_families').where({ inviteCode: code }).limit(1).get()
   if (!found.data.length) throw new Error('邀请码不对')
   const family = found.data[0]
 
-  const already = await db.collection('members').where({ familyId: family._id }).get()
+  const already = await db.collection('xiaoya_members').where({ familyId: family._id }).get()
   if (already.data.some((m) => m._openid === OPENID)) {
     return { familyId: family._id, already: true }
   }
 
-  await db.collection('members').add({
+  await db.collection('xiaoya_members').add({
     data: {
       familyId: family._id,
       nickName: '家人',

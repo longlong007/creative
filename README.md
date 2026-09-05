@@ -32,9 +32,9 @@
 
 1. 在开发者工具开通云开发，记下环境 ID
 2. 把 ID 填进 `miniprogram/config.js` 的 `cloudEnv`
-3. 云开发控制台创建集合：`families`、`members`、`babies`、`records`（字段说明见 `database/README.md`）
-4. 上传并部署云函数：`login`、`createFamily`、`joinFamily`、`aiAnalyze`
-5. `families.inviteCode` 建议建索引
+3. 云开发控制台创建集合：`xiaoya_families`、`xiaoya_members`、`xiaoya_babies`、`xiaoya_records`（字段说明见 `database/README.md`）
+4. 上传并部署云函数：`xiaoyaLogin`、`createFamily`、`joinFamily`、`aiAnalyze`
+5. `xiaoya_families.inviteCode` 建议建索引
 
 之后把家庭页里的邀请码发给家人即可加入。
 
