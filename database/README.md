@@ -20,7 +20,7 @@
 | role | string | 创建者 / 家长 |
 | joinedAt | number | |
 
-`_openid` 由云开发自动写入。
+`_openid` 由云函数写入（云函数不会自动带上当前用户）。
 
 ## xiaoya_babies
 

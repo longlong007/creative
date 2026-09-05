@@ -19,6 +19,7 @@ exports.main = async (event) => {
 
   await db.collection('xiaoya_members').add({
     data: {
+      _openid: OPENID,
       familyId: family._id,
       nickName: '家人',
       role: '家长',

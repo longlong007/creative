@@ -220,7 +220,8 @@ class Database {
         data: { familyName: family.name, inviteCode: code, baby }
       })
       const ok = await this._loadCloud()
-      if (ok) this.mode = 'cloud'
+      if (!ok) throw new Error('家庭已创建，但同步失败。请重新打开小程序。')
+      this.mode = 'cloud'
       this.persist()
       return this.snapshot()
     }
@@ -241,7 +242,8 @@ class Database {
     if (this.cloudReady) {
       await wx.cloud.callFunction({ name: 'joinFamily', data: { inviteCode: normalized } })
       const ok = await this._loadCloud()
-      if (ok) this.mode = 'cloud'
+      if (!ok) throw new Error('已加入，但同步失败。请重新打开小程序。')
+      this.mode = 'cloud'
       this.persist()
       return this.snapshot()
     }

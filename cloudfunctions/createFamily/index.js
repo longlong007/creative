@@ -16,6 +16,7 @@ exports.main = async (event) => {
 
   const fam = await db.collection('xiaoya_families').add({
     data: {
+      _openid: OPENID,
       name: familyName,
       inviteCode,
       createdAt: Date.now(),
@@ -25,6 +26,7 @@ exports.main = async (event) => {
 
   await db.collection('xiaoya_members').add({
     data: {
+      _openid: OPENID,
       familyId: fam._id,
       nickName: '我',
       role: '创建者',
@@ -34,6 +36,7 @@ exports.main = async (event) => {
 
   await db.collection('xiaoya_babies').add({
     data: {
+      _openid: OPENID,
       familyId: fam._id,
       name: baby.name,
       birthday: baby.birthday,
