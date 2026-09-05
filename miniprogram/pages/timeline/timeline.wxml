@@ -20,4 +20,5 @@
       <record-item wx:for="{{item.records}}" wx:for-item="rec" wx:key="id" record="{{rec}}" bind:edit="editRecord" />
     </view>
   </view>
+  <view class="tab-space"></view>
 </view>

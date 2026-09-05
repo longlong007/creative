@@ -65,6 +65,7 @@
     <view wx:if="{{!recent.length}}" class="empty">还没有记录，从喝奶或睡觉开始</view>
     <record-item wx:for="{{recent}}" wx:key="id" record="{{item}}" bind:edit="editRecord" />
   </view>
+  <view class="tab-space"></view>
 </view>
 
 <view class="mask" wx:if="{{sheet}}" bindtap="closeSheet"></view>

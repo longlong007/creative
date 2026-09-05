@@ -9,7 +9,7 @@
  */
 module.exports = {
   appName: '小芽记',
-  cloudEnv: '',
+  cloudEnv: 'cloud1-0gxm09652ddd3d4c',
   inviteCodeLength: 6,
   deepseekApiKey: '',
   deepseekModel: 'deepseek-v4-flash',

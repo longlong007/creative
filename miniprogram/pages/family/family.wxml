@@ -47,4 +47,5 @@
     <view class="link" bindtap="goInsights">DeepSeek 分析本周记录</view>
     <view class="link" bindtap="exportData">导出全部记录（JSON）</view>
   </view>
+  <view class="tab-space"></view>
 </view>

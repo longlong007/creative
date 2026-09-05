@@ -24,8 +24,14 @@ page {
   min-height: 100%;
 }
 
-.safe-bottom {
-  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+/* 比各页 .page { padding } 多一层选择器，避免简写把底部留白盖掉 */
+.page.safe-bottom {
+  padding-bottom: 0;
+}
+
+.tab-space {
+  height: calc(136rpx + env(safe-area-inset-bottom));
+  flex-shrink: 0;
 }
 
 .card {

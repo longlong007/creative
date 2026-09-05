@@ -32,6 +32,7 @@
       <text class="muted">{{item.tText}}</text>
     </view>
   </view>
+  <view class="tab-space"></view>
 </view>
 
 <view class="mask" wx:if="{{sheet}}" bindtap="closeSheet"></view>
