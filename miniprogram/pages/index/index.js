@@ -1,12 +1,7 @@
 const db = require('../../utils/db')
 const present = require('../../utils/present')
+const { hideTabBar, showTabBar } = require('../../utils/tab')
 const { MILK_SUBTYPES, MILK_AMOUNTS, BREAST_MINUTES, TIME_OFFSETS, MORE_ACTIONS } = require('../../utils/constants')
-
-function applyTab(page) {
-  if (typeof page.getTabBar === 'function' && page.getTabBar()) {
-    page.getTabBar().setData({ selected: 0 })
-  }
-}
 
 Page({
   data: {
@@ -35,7 +30,7 @@ Page({
   },
 
   async onShow() {
-    applyTab(this)
+    showTabBar(this, 0)
     await getApp().whenReady()
     if (!db.hasBaby()) {
       wx.redirectTo({ url: '/pages/onboarding/onboarding' })
@@ -83,6 +78,7 @@ Page({
     const last = this.data.lastAmount || 120
     const subtype = this.data.milkSubtype
     const meta = MILK_SUBTYPES.find((s) => s.key === subtype) || MILK_SUBTYPES[0]
+    hideTabBar(this)
     this.setData({
       sheet: 'milk',
       milkAmount: last,
@@ -92,6 +88,7 @@ Page({
   },
 
   closeSheet() {
+    showTabBar(this, 0)
     this.setData({ sheet: '' })
   },
 
@@ -146,6 +143,7 @@ Page({
         source: 'quick'
       })
     }
+    showTabBar(this, 0)
     this.setData({ sheet: '' })
     wx.showToast({ title: '记下了', icon: 'success' })
     this.refresh()
@@ -172,11 +170,13 @@ Page({
   },
 
   openMore() {
+    hideTabBar(this)
     this.setData({ sheet: 'more' })
   },
 
   openMoreForm(e) {
     const type = e.currentTarget.dataset.type
+    hideTabBar(this)
     this.setData({
       sheet: 'form',
       moreForm: { type, value: '', note: '', start: '', end: '' }
@@ -206,6 +206,7 @@ Page({
       payload.unit = '°C'
     } else if (type === 'sleep') {
       wx.navigateTo({ url: '/pages/record-edit/record-edit?type=sleep' })
+      showTabBar(this, 0)
       this.setData({ sheet: '' })
       return
     }
@@ -215,6 +216,7 @@ Page({
     }
     wx.vibrateShort({ type: 'light' })
     await db.addRecord(payload)
+    showTabBar(this, 0)
     this.setData({ sheet: '' })
     wx.showToast({ title: '记下了', icon: 'success' })
     this.refresh()

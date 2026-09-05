@@ -1,5 +1,6 @@
 const db = require('../../utils/db')
 const present = require('../../utils/present')
+const { showTabBar } = require('../../utils/tab')
 
 Page({
   data: {
@@ -15,9 +16,7 @@ Page({
   },
 
   async onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 1 })
-    }
+    showTabBar(this, 1)
     await getApp().whenReady()
     if (!db.hasBaby()) {
       wx.redirectTo({ url: '/pages/onboarding/onboarding' })

@@ -1,6 +1,7 @@
 Component({
   data: {
     selected: 0,
+    hidden: false,
     list: [
       { pagePath: '/pages/index/index', text: '记录', icon: 'edit' },
       { pagePath: '/pages/timeline/timeline', text: '时间轴', icon: 'time' },

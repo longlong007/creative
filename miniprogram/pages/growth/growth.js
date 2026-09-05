@@ -1,6 +1,7 @@
 const db = require('../../utils/db')
 const stats = require('../../utils/stats')
 const format = require('../../utils/format')
+const { hideTabBar, showTabBar } = require('../../utils/tab')
 
 Page({
   data: {
@@ -16,9 +17,7 @@ Page({
   },
 
   async onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 2 })
-    }
+    showTabBar(this, 2)
     await getApp().whenReady()
     if (!db.hasBaby()) {
       wx.redirectTo({ url: '/pages/onboarding/onboarding' })
@@ -56,10 +55,12 @@ Page({
 
   openAdd(e) {
     const type = e.currentTarget.dataset.type || this.data.tab
+    hideTabBar(this)
     this.setData({ sheet: true, formType: type, formValue: '' })
   },
 
   closeSheet() {
+    showTabBar(this, 2)
     this.setData({ sheet: false })
   },
 
@@ -81,6 +82,7 @@ Page({
       startAt: Date.now(),
       source: 'manual'
     })
+    showTabBar(this, 2)
     this.setData({ sheet: false })
     wx.showToast({ title: '记下了', icon: 'success' })
     this.refresh()

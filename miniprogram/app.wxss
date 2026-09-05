@@ -92,7 +92,7 @@ page {
   right: 0;
   bottom: 0;
   background: rgba(44, 38, 34, 0.35);
-  z-index: 20;
+  z-index: 90;
 }
 
 .sheet {
@@ -100,10 +100,14 @@ page {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 21;
+  z-index: 100;
+  max-height: 85vh;
+  overflow-y: auto;
   background: #fff;
   border-radius: 40rpx 40rpx 0 0;
-  padding: 28rpx 32rpx calc(32rpx + env(safe-area-inset-bottom));
+  /* 自定义 tabBar 在原生层，z-index 盖不住；确认按钮必须抬到菜单上方 */
+  padding: 28rpx 32rpx calc(180rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
   transform: translateY(110%);
   transition: transform 0.22s ease;
 }
