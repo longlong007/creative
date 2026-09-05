@@ -141,3 +141,17 @@ page {
   margin-bottom: 28rpx;
   font-size: 26rpx;
 }
+
+.when-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 88rpx;
+  padding: 0 8rpx;
+  margin-bottom: 8rpx;
+  border-bottom: 1rpx solid #F0E8DE;
+}
+
+.when-field text {
+  color: var(--muted);
+}

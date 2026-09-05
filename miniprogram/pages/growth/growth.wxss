@@ -72,5 +72,5 @@
   background: #F7F1EA;
   border-radius: 24rpx;
   padding: 0 28rpx;
-  margin: 12rpx 0 24rpx;
+  margin: 20rpx 0 24rpx;
 }

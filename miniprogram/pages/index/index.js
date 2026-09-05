@@ -1,7 +1,8 @@
 const db = require('../../utils/db')
 const present = require('../../utils/present')
+const format = require('../../utils/format')
 const { hideTabBar, showTabBar } = require('../../utils/tab')
-const { MILK_SUBTYPES, MILK_AMOUNTS, BREAST_MINUTES, TIME_OFFSETS, MORE_ACTIONS } = require('../../utils/constants')
+const { MILK_SUBTYPES, MILK_AMOUNTS, BREAST_MINUTES, TIME_OFFSETS, MORE_ACTIONS, DIAPER_SUBTYPES, FORM_TITLES } = require('../../utils/constants')
 
 Page({
   data: {
@@ -25,8 +26,12 @@ Page({
     isBreast: false,
     timeOffsets: TIME_OFFSETS,
     timeOffset: 'now',
+    formDate: '',
+    formTime: '',
     moreActions: MORE_ACTIONS,
-    moreForm: { type: '', value: '', note: '', start: '', end: '' }
+    diaperSubtypes: DIAPER_SUBTYPES,
+    formTitle: '',
+    moreForm: { type: '', value: '', note: '', date: '', time: '', subtype: '' }
   },
 
   async onShow() {
@@ -74,17 +79,33 @@ Page({
     wx.switchTab({ url: '/pages/family/family' })
   },
 
-  openMilk() {
+  nowParts() {
+    return format.nowDateTime()
+  },
+
+  openMilk(e) {
     const last = this.data.lastAmount || 120
     const subtype = this.data.milkSubtype
     const meta = MILK_SUBTYPES.find((s) => s.key === subtype) || MILK_SUBTYPES[0]
+    const parts = this.nowParts()
+    const backfill = !!(e && e.currentTarget && e.currentTarget.dataset.backfill)
     hideTabBar(this)
     this.setData({
       sheet: 'milk',
       milkAmount: last,
       isBreast: meta.type === 'breastfeed',
-      timeOffset: 'now'
+      timeOffset: backfill ? 'custom' : 'now',
+      formDate: parts.date,
+      formTime: parts.time
     })
+  },
+
+  openSleepBackfill() {
+    wx.navigateTo({ url: '/pages/record-edit/record-edit?type=sleep' })
+  },
+
+  openDiaperBackfill(e) {
+    this.openForm('diaper', e.currentTarget.dataset.key)
   },
 
   closeSheet() {
@@ -107,7 +128,22 @@ Page({
   },
 
   chooseTime(e) {
-    this.setData({ timeOffset: e.currentTarget.dataset.key })
+    const key = e.currentTarget.dataset.key
+    const patch = { timeOffset: key }
+    if (key === 'custom') {
+      const parts = this.nowParts()
+      patch.formDate = this.data.formDate || parts.date
+      patch.formTime = this.data.formTime || parts.time
+    }
+    this.setData(patch)
+  },
+
+  onMilkDate(e) {
+    this.setData({ formDate: e.detail.value })
+  },
+
+  onMilkTime(e) {
+    this.setData({ formTime: e.detail.value })
   },
 
   onAmountInput(e) {
@@ -115,6 +151,9 @@ Page({
   },
 
   resolveTime() {
+    if (this.data.timeOffset === 'custom') {
+      return format.toTs(this.data.formDate, this.data.formTime)
+    }
     const item = TIME_OFFSETS.find((t) => t.key === this.data.timeOffset) || TIME_OFFSETS[0]
     return Date.now() + item.minutes * 60000
   },
@@ -175,11 +214,23 @@ Page({
   },
 
   openMoreForm(e) {
-    const type = e.currentTarget.dataset.type
+    this.openForm(e.currentTarget.dataset.type)
+  },
+
+  openForm(type, subtype) {
     hideTabBar(this)
+    const parts = this.nowParts()
     this.setData({
       sheet: 'form',
-      moreForm: { type, value: '', note: '', start: '', end: '' }
+      formTitle: FORM_TITLES[type] || '记一笔',
+      moreForm: {
+        type,
+        value: '',
+        note: '',
+        date: parts.date,
+        time: parts.time,
+        subtype: subtype || (type === 'diaper' ? 'pee' : '')
+      }
     })
   },
 
@@ -191,10 +242,27 @@ Page({
     this.setData({ 'moreForm.note': e.detail.value })
   },
 
+  onFormDate(e) {
+    this.setData({ 'moreForm.date': e.detail.value })
+  },
+
+  onFormTime(e) {
+    this.setData({ 'moreForm.time': e.detail.value })
+  },
+
+  chooseDiaperSubtype(e) {
+    this.setData({ 'moreForm.subtype': e.currentTarget.dataset.key })
+  },
+
   async saveMore() {
     const form = this.data.moreForm
     const type = form.type
-    const payload = { type, source: 'manual', startAt: Date.now(), note: form.note }
+    const payload = {
+      type,
+      source: 'manual',
+      startAt: format.toTs(form.date, form.time),
+      note: form.note
+    }
     if (type === 'height') {
       payload.amount = Number(form.value)
       payload.unit = 'cm'
@@ -204,11 +272,8 @@ Page({
     } else if (type === 'temperature') {
       payload.amount = Number(form.value)
       payload.unit = '°C'
-    } else if (type === 'sleep') {
-      wx.navigateTo({ url: '/pages/record-edit/record-edit?type=sleep' })
-      showTabBar(this, 0)
-      this.setData({ sheet: '' })
-      return
+    } else if (type === 'diaper') {
+      payload.subtype = form.subtype || 'pee'
     }
     if ((type === 'height' || type === 'weight' || type === 'temperature') && !payload.amount) {
       wx.showToast({ title: '填一个数字', icon: 'none' })

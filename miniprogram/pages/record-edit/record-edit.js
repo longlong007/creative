@@ -74,16 +74,10 @@ Page({
     this.setData({ endTime: e.detail.value })
   },
 
-  toTs(date, time) {
-    const [y, m, d] = date.split('-').map(Number)
-    const [hh, mm] = (time || '00:00').split(':').map(Number)
-    return new Date(y, m - 1, d, hh, mm, 0).getTime()
-  },
-
   async save() {
-    const startAt = this.toTs(this.data.date, this.data.time)
+    const startAt = format.toTs(this.data.date, this.data.time)
     if (this.data.isNewSleep) {
-      const endAt = this.toTs(this.data.endDate, this.data.endTime)
+      const endAt = format.toTs(this.data.endDate, this.data.endTime)
       if (endAt <= startAt) {
         wx.showToast({ title: '醒来要晚于入睡', icon: 'none' })
         return

@@ -13,7 +13,9 @@ Page({
     series: [],
     sheet: false,
     formType: 'weight',
-    formValue: ''
+    formValue: '',
+    formDate: '',
+    formTime: ''
   },
 
   async onShow() {
@@ -55,8 +57,23 @@ Page({
 
   openAdd(e) {
     const type = e.currentTarget.dataset.type || this.data.tab
+    const parts = format.nowDateTime()
     hideTabBar(this)
-    this.setData({ sheet: true, formType: type, formValue: '' })
+    this.setData({
+      sheet: true,
+      formType: type,
+      formValue: '',
+      formDate: parts.date,
+      formTime: parts.time
+    })
+  },
+
+  onDate(e) {
+    this.setData({ formDate: e.detail.value })
+  },
+
+  onTime(e) {
+    this.setData({ formTime: e.detail.value })
   },
 
   closeSheet() {
@@ -79,7 +96,7 @@ Page({
       type,
       amount: v,
       unit: type === 'height' ? 'cm' : 'kg',
-      startAt: Date.now(),
+      startAt: format.toTs(this.data.formDate, this.data.formTime),
       source: 'manual'
     })
     showTabBar(this, 2)

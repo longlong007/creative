@@ -61,6 +61,13 @@ async function run() {
     assertEq(format.ageText('2026-08-20', now), '11天')
   })
 
+  await test('toTs and nowDateTime', () => {
+    assertEq(format.toTs('2026-08-31', '15:00'), now)
+    const parts = format.nowDateTime(now)
+    assertEq(parts.date, '2026-08-31')
+    assertEq(parts.time, '15:00')
+  })
+
   await test('formatDurationMin', () => {
     assertEq(format.formatDurationMin(45), '45分钟')
     assertEq(format.formatDurationMin(80), '1小时20分')

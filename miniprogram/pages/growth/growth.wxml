@@ -39,6 +39,18 @@
 <view class="sheet {{sheet ? 'show' : ''}}" wx:if="{{sheet}}" catchtap="noop">
   <view class="sheet-handle"></view>
   <view class="sheet-title">记{{formType === 'weight' ? '体重' : '身高'}}</view>
+  <view class="when-field">
+    <text>日期</text>
+    <picker mode="date" value="{{formDate}}" bindchange="onDate">
+      <view>{{formDate}}</view>
+    </picker>
+  </view>
+  <view class="when-field">
+    <text>时间</text>
+    <picker mode="time" value="{{formTime}}" bindchange="onTime">
+      <view>{{formTime}}</view>
+    </picker>
+  </view>
   <input class="amt-input" type="digit" placeholder="{{formType === 'weight' ? '例如 8.2' : '例如 72.5'}}" bindinput="onValue" />
   <button class="btn btn-primary" bindtap="save">保存</button>
 </view>

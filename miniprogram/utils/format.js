@@ -45,6 +45,17 @@ function formatYmd(ts) {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
 }
 
+function toTs(date, time) {
+  const [y, m, d] = String(date || '').split('-').map(Number)
+  const [hh, mm] = String(time || '00:00').split(':').map(Number)
+  return new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0, 0).getTime()
+}
+
+function nowDateTime(ts) {
+  const t = ts != null ? ts : Date.now()
+  return { date: formatYmd(t), time: formatTime(t) }
+}
+
 function formatDurationMin(min) {
   const n = Math.max(0, Math.round(Number(min) || 0))
   if (n < 1) return '不足1分钟'
@@ -113,6 +124,8 @@ module.exports = {
   formatDate,
   formatDateTime,
   formatYmd,
+  toTs,
+  nowDateTime,
   formatDurationMin,
   formatAgo,
   ageParts,

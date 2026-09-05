@@ -31,7 +31,8 @@ const TIME_OFFSETS = [
   { key: 'm5', label: '5分钟前', minutes: -5 },
   { key: 'm15', label: '15分钟前', minutes: -15 },
   { key: 'm30', label: '30分钟前', minutes: -30 },
-  { key: 'm60', label: '1小时前', minutes: -60 }
+  { key: 'm60', label: '1小时前', minutes: -60 },
+  { key: 'custom', label: '补录', minutes: 0 }
 ]
 
 const MORE_ACTIONS = [
@@ -39,9 +40,17 @@ const MORE_ACTIONS = [
   { key: 'weight', label: '体重', desc: 'kg', type: 'weight' },
   { key: 'temperature', label: '体温', desc: '°C', type: 'temperature' },
   { key: 'solid', label: '辅食', desc: '一口一口', type: 'solid' },
-  { key: 'sleep_done', label: '补记睡眠', desc: '已经睡过', type: 'sleep' },
   { key: 'note', label: '备注', desc: '一句话', type: 'note' }
 ]
+
+const FORM_TITLES = {
+  height: '记身高',
+  weight: '记体重',
+  temperature: '记体温',
+  solid: '记辅食',
+  note: '记备注',
+  diaper: '补记尿布'
+}
 
 module.exports = {
   RECORD_TYPES,
@@ -50,5 +59,6 @@ module.exports = {
   MILK_AMOUNTS,
   BREAST_MINUTES,
   TIME_OFFSETS,
-  MORE_ACTIONS
+  MORE_ACTIONS,
+  FORM_TITLES
 }
