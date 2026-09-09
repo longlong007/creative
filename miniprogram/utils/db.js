@@ -127,7 +127,7 @@ class Database {
     this._notify()
   }
 
-  async _loadCloud() {
+  async _loadCloud(preferredFamilyId) {
     const db = wx.cloud.database()
     const login = await wx.cloud.callFunction({ name: 'xiaoyaLogin' })
     const openid = (login.result && login.result.openid) || ''
@@ -138,10 +138,22 @@ class Database {
       role: '家长'
     }
 
-    const memberRes = await db.collection('xiaoya_members').where({ _openid: openid }).limit(1).get()
+    const memberRes = await db.collection('xiaoya_members').where({ _openid: openid }).get()
     if (!memberRes.data.length) return false
-    const member = memberRes.data[0]
+    const storedFamilyId =
+      preferredFamilyId ||
+      (typeof wx !== 'undefined' && wx.getStorageSync && wx.getStorageSync('xiaoya_current_family')) ||
+      ''
+    let member = memberRes.data[0]
+    if (storedFamilyId) {
+      member = memberRes.data.find((m) => m.familyId === storedFamilyId) || member
+    } else if (memberRes.data.length > 1) {
+      member = memberRes.data.slice().sort((a, b) => (b.joinedAt || 0) - (a.joinedAt || 0))[0]
+    }
     const familyId = member.familyId
+    if (typeof wx !== 'undefined' && wx.setStorageSync) {
+      wx.setStorageSync('xiaoya_current_family', familyId)
+    }
     const [familyRes, membersRes, babiesRes] = await Promise.all([
       db.collection('xiaoya_families').doc(familyId).get(),
       db.collection('xiaoya_members').where({ familyId }).get(),
@@ -150,7 +162,12 @@ class Database {
     this.state.family = this._fromCloud(familyRes.data)
     this.state.members = membersRes.data.map((d) => this._fromCloud(d))
     this.state.babies = babiesRes.data.map((d) => this._fromCloud(d))
-    this.state.currentBabyId = wx.getStorageSync('xiaoya_current_baby') || (this.state.babies[0] && this.state.babies[0].id) || ''
+    const storedBaby = wx.getStorageSync('xiaoya_current_baby')
+    const inFamily = this.state.babies.some((b) => b.id === storedBaby)
+    this.state.currentBabyId = inFamily ? storedBaby : (this.state.babies[0] && this.state.babies[0].id) || ''
+    if (this.state.currentBabyId && typeof wx !== 'undefined' && wx.setStorageSync) {
+      wx.setStorageSync('xiaoya_current_baby', this.state.currentBabyId)
+    }
     await this._refreshCloudRecords()
     return true
   }
@@ -240,8 +257,15 @@ class Database {
     if (!normalized) throw new Error('请输入邀请码')
 
     if (this.cloudReady) {
-      await wx.cloud.callFunction({ name: 'joinFamily', data: { inviteCode: normalized } })
-      const ok = await this._loadCloud()
+      const res = await wx.cloud.callFunction({ name: 'joinFamily', data: { inviteCode: normalized } })
+      const familyId = res.result && res.result.familyId
+      if (typeof wx !== 'undefined' && wx.removeStorageSync) {
+        wx.removeStorageSync('xiaoya_current_baby')
+      }
+      if (familyId && typeof wx !== 'undefined' && wx.setStorageSync) {
+        wx.setStorageSync('xiaoya_current_family', familyId)
+      }
+      const ok = await this._loadCloud(familyId)
       if (!ok) throw new Error('已加入，但同步失败。请重新打开小程序。')
       this.mode = 'cloud'
       this.persist()

@@ -16,6 +16,7 @@ Page({
     try {
       await db.joinFamily(this.data.code)
       wx.hideLoading()
+      wx.showToast({ title: '已加入这本账', icon: 'success' })
       wx.switchTab({ url: '/pages/index/index' })
     } catch (e) {
       wx.hideLoading()

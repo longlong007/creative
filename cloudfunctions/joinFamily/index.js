@@ -12,20 +12,25 @@ exports.main = async (event) => {
   if (!found.data.length) throw new Error('邀请码不对')
   const family = found.data[0]
 
-  const already = await db.collection('xiaoya_members').where({ familyId: family._id }).get()
-  if (already.data.some((m) => m._openid === OPENID)) {
-    return { familyId: family._id, already: true }
+  const mine = await db.collection('xiaoya_members').where({ _openid: OPENID }).get()
+  const inTarget = mine.data.filter((m) => m.familyId === family._id)
+  const others = mine.data.filter((m) => m.familyId !== family._id)
+
+  for (let i = 0; i < others.length; i++) {
+    await db.collection('xiaoya_members').doc(others[i]._id).remove()
   }
 
-  await db.collection('xiaoya_members').add({
-    data: {
-      _openid: OPENID,
-      familyId: family._id,
-      nickName: '家人',
-      role: '家长',
-      joinedAt: Date.now()
-    }
-  })
+  if (!inTarget.length) {
+    await db.collection('xiaoya_members').add({
+      data: {
+        _openid: OPENID,
+        familyId: family._id,
+        nickName: '家人',
+        role: '家长',
+        joinedAt: Date.now()
+      }
+    })
+  }
 
-  return { familyId: family._id, already: false }
+  return { familyId: family._id, already: inTarget.length > 0 }
 }
