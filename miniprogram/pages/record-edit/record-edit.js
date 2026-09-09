@@ -12,6 +12,8 @@ Page({
     note: '',
     date: '',
     time: '',
+    endDate: '',
+    endTime: '',
     durationMin: '',
     isNewSleep: false
   },
@@ -37,6 +39,7 @@ Page({
       wx.showToast({ title: '找不到这条', icon: 'none' })
       return
     }
+    const endTs = rec.endAt || Date.now()
     this.setData({
       id: rec.id,
       rec,
@@ -45,6 +48,8 @@ Page({
       note: rec.note || '',
       date: format.formatYmd(rec.startAt),
       time: format.formatTime(rec.startAt),
+      endDate: format.formatYmd(endTs),
+      endTime: format.formatTime(endTs),
       durationMin: rec.durationMin != null ? String(rec.durationMin) : '',
       meta: RECORD_TYPES[rec.type]
     })
@@ -96,6 +101,14 @@ Page({
     const patch = {
       startAt,
       note: this.data.note
+    }
+    if (this.data.rec.type === 'sleep') {
+      const endAt = format.toTs(this.data.endDate, this.data.endTime)
+      if (endAt <= startAt) {
+        wx.showToast({ title: '醒来要晚于入睡', icon: 'none' })
+        return
+      }
+      patch.endAt = endAt
     }
     if (this.data.amount !== '') patch.amount = Number(this.data.amount)
     await db.updateRecord(this.data.id, patch)

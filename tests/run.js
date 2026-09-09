@@ -141,6 +141,12 @@ async function run() {
     assert(ended.endAt)
     assert(ended.durationMin >= 1 || ended.durationMin === 1 || ended.durationMin >= 0)
 
+    const edited = await db.updateRecord(ended.id, {
+      startAt: ended.startAt,
+      endAt: ended.startAt + 90 * 60000
+    })
+    assertEq(edited.durationMin, 90)
+
     const snap = db.snapshot()
     const home = present.presentHome(snap)
     assertEq(home.baby.name, '小芽')

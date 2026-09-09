@@ -3,24 +3,24 @@
 
   <view class="card">
     <view class="field">
-      <text>日期</text>
+      <text>{{rec.type === 'sleep' ? '入睡日期' : '日期'}}</text>
       <picker mode="date" value="{{date}}" bindchange="onDate">
         <view>{{date}}</view>
       </picker>
     </view>
     <view class="field">
-      <text>时间</text>
+      <text>{{rec.type === 'sleep' ? '入睡时间' : '时间'}}</text>
       <picker mode="time" value="{{time}}" bindchange="onTime">
         <view>{{time}}</view>
       </picker>
     </view>
-    <view class="field" wx:if="{{isNewSleep}}">
+    <view class="field" wx:if="{{rec.type === 'sleep'}}">
       <text>醒来日期</text>
       <picker mode="date" value="{{endDate}}" bindchange="onEndDate">
         <view>{{endDate}}</view>
       </picker>
     </view>
-    <view class="field" wx:if="{{isNewSleep}}">
+    <view class="field" wx:if="{{rec.type === 'sleep'}}">
       <text>醒来时间</text>
       <picker mode="time" value="{{endTime}}" bindchange="onEndTime">
         <view>{{endTime}}</view>
