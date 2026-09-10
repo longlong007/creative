@@ -1,4 +1,10 @@
-<view class="row {{open ? 'open' : ''}}" bindtap="onTap">
+<view
+  class="row {{open ? 'open' : ''}} {{pressed ? 'pressed' : ''}}"
+  bindtouchstart="onTouchStart"
+  bindtouchend="onTouchEnd"
+  bindtouchcancel="onTouchCancel"
+  bindtap="onTap"
+>
   <view class="dot" style="background: {{bg}}; color: {{color}}">
     <view class="dot-inner" style="background: {{color}}"></view>
   </view>

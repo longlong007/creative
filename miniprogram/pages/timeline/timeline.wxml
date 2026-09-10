@@ -3,7 +3,10 @@
     <view
       wx:for="{{filters}}"
       wx:key="key"
-      class="chip {{filter === item.key ? 'on' : ''}}"
+      class="chip tap {{filter === item.key ? 'on' : ''}}"
+      hover-class="tap-on"
+      hover-start-time="0"
+      hover-stay-time="80"
       data-key="{{item.key}}"
       bindtap="setFilter"
     >{{item.label}}</view>

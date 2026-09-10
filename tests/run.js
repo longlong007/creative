@@ -124,6 +124,19 @@ async function run() {
     assertEq(stats.recordTitle({ type: 'solid' }), '辅食')
   })
 
+  await test('home recent only includes today', () => {
+    const todayMilk = { id: '1', type: 'milk', amount: 120, startAt: now - 3600000 }
+    const todayDiaper = { id: '2', type: 'diaper', subtype: 'pee', startAt: now - 60000 }
+    const yesterdayMilk = { id: '3', type: 'milk', amount: 80, startAt: now - 48 * 3600000 }
+    const home = present.presentHome({
+      baby: { name: '小芽', birthday: '2026-01-01' },
+      records: [todayDiaper, todayMilk, yesterdayMilk]
+    }, now)
+    assertEq(home.recent.length, 2)
+    assertEq(home.recent[0].id, '2')
+    assertEq(home.recent[1].id, '1')
+  })
+
   await test('db local family and quick records', async () => {
     await db.init()
     await db.resetLocal()

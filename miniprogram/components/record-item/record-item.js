@@ -11,7 +11,8 @@ Component({
     color: '#8A8178',
     bg: '#EEEAE4',
     actor: '',
-    open: false
+    open: false,
+    pressed: false
   },
   observers: {
     record(rec) {
@@ -28,8 +29,32 @@ Component({
     }
   },
   methods: {
+    onTouchStart() {
+      this.setData({ pressed: true })
+    },
+
+    onTouchEnd() {
+      this.releasePress()
+    },
+
+    onTouchCancel() {
+      this.releasePress()
+    },
+
+    releasePress() {
+      if (this._pressTimer) clearTimeout(this._pressTimer)
+      this._pressTimer = setTimeout(() => this.setData({ pressed: false }), 180)
+    },
+
     onTap() {
-      this.triggerEvent('edit', { id: this.data.record.id })
+      if (this._opening) return
+      this._opening = true
+      this.setData({ pressed: true })
+      const id = this.data.record.id
+      setTimeout(() => {
+        this._opening = false
+        this.triggerEvent('edit', { id })
+      }, 140)
     }
   }
 })

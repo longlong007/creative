@@ -167,7 +167,6 @@ Page({
   async saveMilk() {
     const meta = MILK_SUBTYPES.find((s) => s.key === this.data.milkSubtype)
     const startAt = this.resolveTime()
-    wx.vibrateShort({ type: 'light' })
     if (meta.type === 'breastfeed') {
       await db.addRecord({
         type: 'breastfeed',
@@ -195,7 +194,6 @@ Page({
   },
 
   async toggleSleep() {
-    wx.vibrateShort({ type: 'light' })
     if (this.data.activeSleep) {
       await db.endSleep()
       wx.showToast({ title: '醒来了', icon: 'success' })
@@ -208,7 +206,6 @@ Page({
 
   async saveDiaper(e) {
     const key = e.currentTarget.dataset.key
-    wx.vibrateShort({ type: 'light' })
     await db.addRecord({ type: 'diaper', subtype: key, startAt: Date.now(), source: 'quick' })
     wx.showToast({ title: '记下了', icon: 'success' })
     this.refresh()
@@ -318,7 +315,6 @@ Page({
       wx.showToast({ title: '填一个数字', icon: 'none' })
       return
     }
-    wx.vibrateShort({ type: 'light' })
     await db.addRecord(payload)
     showTabBar(this, 0)
     this.setData({ sheet: '' })

@@ -27,7 +27,16 @@
   <view class="card list">
     <view class="section-title">历史测量</view>
     <view wx:if="{{!series.length}}" class="empty">还没有测量</view>
-    <view class="row" wx:for="{{series}}" wx:key="id" data-id="{{item.id}}" bindtap="editRecord">
+    <view
+      class="row {{pressedId === item.id ? 'pressed' : ''}}"
+      wx:for="{{series}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtouchstart="onRowTouchStart"
+      bindtouchend="onRowTouchEnd"
+      bindtouchcancel="onRowTouchEnd"
+      bindtap="editRecord"
+    >
       <text>{{item.v}}{{tab === 'weight' ? ' kg' : ' cm'}}</text>
       <text class="muted">{{item.tText}}</text>
     </view>

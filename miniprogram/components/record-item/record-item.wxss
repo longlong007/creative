@@ -1,8 +1,16 @@
 .row {
   display: flex;
   align-items: center;
-  padding: 22rpx 8rpx;
+  padding: 22rpx 12rpx;
+  margin: 0 -4rpx;
   gap: 20rpx;
+  border-radius: 20rpx;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.row.pressed {
+  background: #E8DFD4;
+  transform: scale(0.97);
 }
 
 .row.open .title {

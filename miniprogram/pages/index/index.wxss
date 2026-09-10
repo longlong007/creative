@@ -308,6 +308,7 @@
   display: flex;
   justify-content: space-between;
   padding: 28rpx 8rpx;
+  border-radius: 16rpx;
   border-bottom: 1rpx solid #F0E8DE;
 }
 

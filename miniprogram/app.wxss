@@ -155,3 +155,21 @@ page {
 .when-field text {
   color: var(--muted);
 }
+
+.tap {
+  transition: transform 0.12s ease, filter 0.12s ease, background-color 0.12s ease, opacity 0.12s ease;
+}
+
+.tap-on {
+  transform: scale(0.96);
+  filter: brightness(0.9);
+}
+
+.tap-fill-on {
+  filter: brightness(0.88);
+}
+
+.tap-row-on {
+  background: #E8DFD4;
+  transform: scale(0.98);
+}

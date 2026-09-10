@@ -57,8 +57,16 @@
 .row {
   display: flex;
   justify-content: space-between;
-  padding: 22rpx 0;
+  padding: 22rpx 12rpx;
+  margin: 0 -12rpx;
+  border-radius: 16rpx;
   border-bottom: 1rpx solid #F0E8DE;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.row.pressed {
+  background: #E8DFD4;
+  transform: scale(0.97);
 }
 
 .empty {

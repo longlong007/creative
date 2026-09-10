@@ -11,6 +11,9 @@ function presentHome(snap, now) {
   const sleep = stats.activeSleep(records)
   const lastAmount = lastMilk && lastMilk.type === 'milk' ? lastMilk.amount : 120
 
+  const dayStart = format.startOfDay(n, n)
+  const dayEnd = format.endOfDay(n, n)
+
   return {
     mode: snap.mode,
     baby,
@@ -24,7 +27,7 @@ function presentHome(snap, now) {
     lastAmount: lastAmount || 120,
     activeSleep: sleep,
     activeSleepText: sleep ? format.formatDurationMin((n - sleep.startAt) / 60000) : '',
-    recent: records.slice(0, 8)
+    recent: records.filter((rec) => rec.startAt >= dayStart && rec.startAt <= dayEnd)
   }
 }
 

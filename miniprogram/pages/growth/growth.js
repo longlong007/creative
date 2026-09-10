@@ -11,6 +11,7 @@ Page({
     heightText: '还没量',
     weightText: '还没量',
     series: [],
+    pressedId: '',
     sheet: false,
     formType: 'weight',
     formValue: '',
@@ -105,8 +106,24 @@ Page({
     this.refresh()
   },
 
+  onRowTouchStart(e) {
+    this.setData({ pressedId: e.currentTarget.dataset.id })
+  },
+
+  onRowTouchEnd() {
+    if (this._pressTimer) clearTimeout(this._pressTimer)
+    this._pressTimer = setTimeout(() => this.setData({ pressedId: '' }), 180)
+  },
+
   editRecord(e) {
-    wx.navigateTo({ url: `/pages/record-edit/record-edit?id=${e.currentTarget.dataset.id}` })
+    if (this._opening) return
+    this._opening = true
+    const id = e.currentTarget.dataset.id
+    this.setData({ pressedId: id })
+    setTimeout(() => {
+      this._opening = false
+      wx.navigateTo({ url: `/pages/record-edit/record-edit?id=${id}` })
+    }, 140)
   },
 
   draw() {
