@@ -155,6 +155,19 @@
       bindtap="chooseDiaperSubtype"
     >{{item.label}}</view>
   </view>
+  <view class="chip-row solid-row" wx:if="{{moreForm.type === 'solid'}}">
+    <view
+      wx:for="{{solidFoods}}"
+      wx:key="*this"
+      class="chip {{moreForm.subtype === item ? 'on' : ''}}"
+      data-key="{{item}}"
+      bindtap="chooseSolidFood"
+    >{{item}}</view>
+  </view>
+  <view class="add-food" wx:if="{{moreForm.type === 'solid'}}">
+    <input placeholder="添加辅食名称" value="{{solidFoodInput}}" bindinput="onSolidFoodInput" confirm-type="done" bindconfirm="addSolidFood" />
+    <view class="add-food-btn" bindtap="addSolidFood">添加</view>
+  </view>
   <view class="when-field">
     <text>日期</text>
     <picker mode="date" value="{{moreForm.date}}" bindchange="onFormDate">

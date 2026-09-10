@@ -15,6 +15,7 @@ Page({
     endDate: '',
     endTime: '',
     durationMin: '',
+    subtype: '',
     isNewSleep: false
   },
 
@@ -51,6 +52,7 @@ Page({
       endDate: format.formatYmd(endTs),
       endTime: format.formatTime(endTs),
       durationMin: rec.durationMin != null ? String(rec.durationMin) : '',
+      subtype: rec.subtype || '',
       meta: RECORD_TYPES[rec.type]
     })
   },
@@ -77,6 +79,10 @@ Page({
 
   onEndTime(e) {
     this.setData({ endTime: e.detail.value })
+  },
+
+  onSubtype(e) {
+    this.setData({ subtype: e.detail.value })
   },
 
   async save() {
@@ -110,7 +116,16 @@ Page({
       }
       patch.endAt = endAt
     }
-    if (this.data.amount !== '') patch.amount = Number(this.data.amount)
+    if (this.data.rec.type === 'solid') {
+      const name = String(this.data.subtype || '').trim()
+      if (!name) {
+        wx.showToast({ title: '填辅食名称', icon: 'none' })
+        return
+      }
+      patch.subtype = name
+      await db.addSolidFood(name)
+    }
+    if (this.data.amount !== '' && this.data.rec.type !== 'solid') patch.amount = Number(this.data.amount)
     await db.updateRecord(this.data.id, patch)
     wx.showToast({ title: '已保存', icon: 'success' })
     setTimeout(() => wx.navigateBack(), 400)

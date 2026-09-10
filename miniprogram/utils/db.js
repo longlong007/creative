@@ -1,5 +1,6 @@
 const config = require('../config')
 const { uid, inviteCode } = require('./id')
+const { SOLID_FOODS, mergeSolidFoods } = require('./constants')
 
 const STORAGE_KEY = 'xiaoya_db_v1'
 
@@ -11,7 +12,8 @@ function emptyState() {
     members: [],
     babies: [],
     currentBabyId: '',
-    records: []
+    records: [],
+    solidFoods: []
   }
 }
 
@@ -70,7 +72,8 @@ class Database {
       babies: this.state.babies.slice(),
       currentBabyId: this.state.currentBabyId,
       baby: this.currentBaby(),
-      records: this.state.records.slice()
+      records: this.state.records.slice(),
+      solidFoods: this.listSolidFoods()
     }
   }
 
@@ -160,6 +163,9 @@ class Database {
       db.collection('xiaoya_babies').where({ familyId }).get()
     ])
     this.state.family = this._fromCloud(familyRes.data)
+    this.state.solidFoods = Array.isArray(this.state.family.solidFoods)
+      ? this.state.family.solidFoods.slice()
+      : []
     this.state.members = membersRes.data.map((d) => this._fromCloud(d))
     this.state.babies = babiesRes.data.map((d) => this._fromCloud(d))
     const storedBaby = wx.getStorageSync('xiaoya_current_baby')
@@ -397,6 +403,36 @@ class Database {
     const existing = this.state.records.find((r) => r.type === 'sleep' && !r.endAt)
     if (!existing) return null
     return this.updateRecord(existing.id, { endAt: Date.now() })
+  }
+
+  listSolidFoods() {
+    const fromRecords = this.state.records
+      .filter((r) => r.type === 'solid' && r.subtype)
+      .map((r) => r.subtype)
+    return mergeSolidFoods(this.state.solidFoods, fromRecords)
+  }
+
+  async addSolidFood(name) {
+    const n = String(name || '').trim()
+    if (!n) return this.listSolidFoods()
+    if (!this.state.solidFoods) this.state.solidFoods = []
+    const exists = SOLID_FOODS.indexOf(n) >= 0 || this.state.solidFoods.indexOf(n) >= 0
+    if (!exists) {
+      this.state.solidFoods.push(n)
+      if (this.state.family) this.state.family.solidFoods = this.state.solidFoods.slice()
+      if (this.mode === 'cloud' && this.state.family && this.state.family.id) {
+        try {
+          const cloudDb = wx.cloud.database()
+          await cloudDb.collection('xiaoya_families').doc(this.state.family.id).update({
+            data: { solidFoods: this.state.solidFoods }
+          })
+        } catch (e) {
+          console.warn('solidFoods cloud update failed', e)
+        }
+      }
+      this.persist()
+    }
+    return this.listSolidFoods()
   }
 
   getRecord(id) {

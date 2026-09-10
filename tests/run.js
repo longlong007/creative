@@ -46,6 +46,7 @@ async function run() {
   const { inviteCode } = load('utils/id')
   const present = load('utils/present')
   const db = load('utils/db')
+  const { SOLID_FOODS, mergeSolidFoods } = load('utils/constants')
 
   const now = new Date(2026, 7, 31, 15, 0, 0).getTime()
 
@@ -119,6 +120,8 @@ async function run() {
     assertEq(stats.recordTitle({ type: 'milk', subtype: 'formula', amount: 120 }), '配方奶 120ml')
     assertEq(stats.recordTitle({ type: 'breastfeed', subtype: 'left', durationMin: 12 }), '亲喂·左侧 12分钟')
     assertEq(stats.recordTitle({ type: 'diaper', subtype: 'poop' }), '便便')
+    assertEq(stats.recordTitle({ type: 'solid', subtype: '南瓜泥' }), '辅食 南瓜泥')
+    assertEq(stats.recordTitle({ type: 'solid' }), '辅食')
   })
 
   await test('db local family and quick records', async () => {
@@ -152,6 +155,26 @@ async function run() {
     assertEq(home.baby.name, '小芽')
     assert(home.recent.length >= 3)
     assert(String(home.todayMilk).indexOf('150') !== -1)
+  })
+
+  await test('solid foods default and custom', async () => {
+    await db.init()
+    await db.resetLocal()
+    await db.createFamilyAndBaby({
+      babyName: '小芽',
+      birthday: '2026-01-01',
+      gender: 'girl'
+    })
+    const defaults = db.listSolidFoods()
+    assertEq(defaults.length, SOLID_FOODS.length)
+    assert(defaults.indexOf('婴儿米粉') >= 0)
+    const merged = mergeSolidFoods(['豆腐'], ['南瓜泥', '豆腐'])
+    assertEq(merged[0], '婴儿米粉')
+    assert(merged.indexOf('豆腐') >= 0)
+    const foods = await db.addSolidFood('豆腐')
+    assert(foods.indexOf('豆腐') >= 0)
+    const rec = await db.addRecord({ type: 'solid', subtype: '豆腐', startAt: Date.now(), source: 'manual' })
+    assertEq(stats.recordTitle(rec), '辅食 豆腐')
   })
 
   await test('insights prompt is AI-ready', async () => {

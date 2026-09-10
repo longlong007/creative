@@ -26,9 +26,13 @@
         <view>{{endTime}}</view>
       </picker>
     </view>
-    <view class="field" wx:if="{{!isNewSleep && rec.type !== 'sleep' && rec.type !== 'diaper' && rec.type !== 'note'}}">
+    <view class="field" wx:if="{{!isNewSleep && rec.type !== 'sleep' && rec.type !== 'diaper' && rec.type !== 'note' && rec.type !== 'solid'}}">
       <text>数值</text>
       <input type="digit" value="{{amount}}" bindinput="onAmount" />
+    </view>
+    <view class="field" wx:if="{{rec.type === 'solid'}}">
+      <text>辅食</text>
+      <input value="{{subtype}}" bindinput="onSubtype" placeholder="辅食名称" />
     </view>
     <view class="field">
       <text>备注</text>

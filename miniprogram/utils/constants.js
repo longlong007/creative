@@ -24,6 +24,31 @@ const DIAPER_SUBTYPES = [
   { key: 'both', label: '都有', emoji: '💧🟡' }
 ]
 
+const SOLID_FOODS = [
+  '婴儿米粉',
+  '南瓜泥',
+  '胡萝卜泥',
+  '土豆泥',
+  '香蕉泥',
+  '苹果泥',
+  '鸡蛋黄',
+  '西兰花',
+  '肉泥',
+  '酸奶'
+]
+
+function mergeSolidFoods(custom, fromRecords) {
+  const seen = new Set()
+  const out = []
+  SOLID_FOODS.concat(custom || []).concat(fromRecords || []).forEach((name) => {
+    const n = String(name || '').trim()
+    if (!n || seen.has(n)) return
+    seen.add(n)
+    out.push(n)
+  })
+  return out
+}
+
 const MILK_AMOUNTS = [60, 90, 120, 150, 180, 210]
 const BREAST_MINUTES = [5, 8, 10, 15, 20, 30]
 const TIME_OFFSETS = [
@@ -56,6 +81,8 @@ module.exports = {
   RECORD_TYPES,
   MILK_SUBTYPES,
   DIAPER_SUBTYPES,
+  SOLID_FOODS,
+  mergeSolidFoods,
   MILK_AMOUNTS,
   BREAST_MINUTES,
   TIME_OFFSETS,

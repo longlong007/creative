@@ -169,7 +169,7 @@ function recordTitle(rec) {
   if (rec.type === 'height') return `身高 ${rec.amount}cm`
   if (rec.type === 'weight') return `体重 ${rec.amount}kg`
   if (rec.type === 'temperature') return `体温 ${rec.amount}°C`
-  if (rec.type === 'solid') return rec.note ? `辅食 ${rec.note}` : '辅食'
+  if (rec.type === 'solid') return rec.subtype ? `辅食 ${rec.subtype}` : rec.note ? `辅食 ${rec.note}` : '辅食'
   if (rec.note) return rec.note
   return meta.label
 }

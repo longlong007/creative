@@ -51,6 +51,7 @@ function presentTimeline(records, now) {
     if (agg.milkMl) bits.push(`奶 ${agg.milkMl}ml`)
     if (agg.sleepMin) bits.push(`睡 ${format.formatDurationMin(agg.sleepMin)}`)
     if (agg.diaperCount) bits.push(`尿布 ${agg.diaperCount}`)
+    if (agg.solids) bits.push(`辅食 ${agg.solids}`)
     g.summary = bits.join(' · ') || '暂无汇总'
   })
   return groups

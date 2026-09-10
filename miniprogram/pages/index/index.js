@@ -2,7 +2,7 @@ const db = require('../../utils/db')
 const present = require('../../utils/present')
 const format = require('../../utils/format')
 const { hideTabBar, showTabBar } = require('../../utils/tab')
-const { MILK_SUBTYPES, MILK_AMOUNTS, BREAST_MINUTES, TIME_OFFSETS, MORE_ACTIONS, DIAPER_SUBTYPES, FORM_TITLES } = require('../../utils/constants')
+const { MILK_SUBTYPES, MILK_AMOUNTS, BREAST_MINUTES, TIME_OFFSETS, MORE_ACTIONS, DIAPER_SUBTYPES, FORM_TITLES, SOLID_FOODS } = require('../../utils/constants')
 
 Page({
   data: {
@@ -30,6 +30,8 @@ Page({
     formTime: '',
     moreActions: MORE_ACTIONS,
     diaperSubtypes: DIAPER_SUBTYPES,
+    solidFoods: SOLID_FOODS,
+    solidFoodInput: '',
     formTitle: '',
     moreForm: { type: '', value: '', note: '', date: '', time: '', subtype: '' }
   },
@@ -220,16 +222,20 @@ Page({
   openForm(type, subtype) {
     hideTabBar(this)
     const parts = this.nowParts()
+    const solidFoods = type === 'solid' ? db.listSolidFoods() : this.data.solidFoods
+    const lastSolid = type === 'solid' ? db.snapshot().records.find((r) => r.type === 'solid' && r.subtype) : null
     this.setData({
       sheet: 'form',
       formTitle: FORM_TITLES[type] || '记一笔',
+      solidFoods,
+      solidFoodInput: '',
       moreForm: {
         type,
         value: '',
         note: '',
         date: parts.date,
         time: parts.time,
-        subtype: subtype || (type === 'diaper' ? 'pee' : '')
+        subtype: subtype || (type === 'diaper' ? 'pee' : type === 'solid' ? ((lastSolid && lastSolid.subtype) || solidFoods[0] || '') : '')
       }
     })
   },
@@ -254,6 +260,28 @@ Page({
     this.setData({ 'moreForm.subtype': e.currentTarget.dataset.key })
   },
 
+  chooseSolidFood(e) {
+    this.setData({ 'moreForm.subtype': e.currentTarget.dataset.key })
+  },
+
+  onSolidFoodInput(e) {
+    this.setData({ solidFoodInput: e.detail.value })
+  },
+
+  async addSolidFood() {
+    const name = String(this.data.solidFoodInput || '').trim()
+    if (!name) {
+      wx.showToast({ title: '先写个名称', icon: 'none' })
+      return
+    }
+    const solidFoods = await db.addSolidFood(name)
+    this.setData({
+      solidFoods,
+      solidFoodInput: '',
+      'moreForm.subtype': name
+    })
+  },
+
   async saveMore() {
     const form = this.data.moreForm
     const type = form.type
@@ -274,6 +302,13 @@ Page({
       payload.unit = '°C'
     } else if (type === 'diaper') {
       payload.subtype = form.subtype || 'pee'
+    } else if (type === 'solid') {
+      payload.subtype = String(form.subtype || '').trim()
+      if (!payload.subtype) {
+        wx.showToast({ title: '选一种辅食', icon: 'none' })
+        return
+      }
+      await db.addSolidFood(payload.subtype)
     }
     if ((type === 'height' || type === 'weight' || type === 'temperature') && !payload.amount) {
       wx.showToast({ title: '填一个数字', icon: 'none' })

@@ -11,7 +11,8 @@ Page({
       { key: 'milk', label: '喝奶' },
       { key: 'sleep', label: '睡眠' },
       { key: 'diaper', label: '尿布' },
-      { key: 'growth', label: '生长' }
+      { key: 'growth', label: '生长' },
+      { key: 'solid', label: '辅食' }
     ]
   },
 
@@ -33,6 +34,7 @@ Page({
     else if (f === 'sleep') records = records.filter((r) => r.type === 'sleep')
     else if (f === 'diaper') records = records.filter((r) => r.type === 'diaper')
     else if (f === 'growth') records = records.filter((r) => r.type === 'height' || r.type === 'weight')
+    else if (f === 'solid') records = records.filter((r) => r.type === 'solid')
     this.setData({ groups: present.presentTimeline(records) })
   },
 
