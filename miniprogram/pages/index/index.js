@@ -106,8 +106,12 @@ Page({
     wx.navigateTo({ url: '/pages/record-edit/record-edit?type=sleep' })
   },
 
-  openDiaperBackfill(e) {
-    this.openForm('diaper', e.currentTarget.dataset.key)
+  openDiaperBackfill() {
+    this.openForm('diaper')
+  },
+
+  openSolid() {
+    this.openForm('solid')
   },
 
   closeSheet() {

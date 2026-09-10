@@ -122,7 +122,8 @@
 
 .q {
   position: relative;
-  height: 180rpx;
+  box-sizing: border-box;
+  height: 236rpx;
   border-radius: 32rpx;
   padding: 28rpx;
   display: flex;
@@ -175,8 +176,37 @@
 .q.milk { background: #FBE4DC; }
 .q.sleep { background: #E4EAF4; }
 .q.sleep.on { background: #6B86B3; color: #fff; }
-.q.pee { background: #E3F0EA; }
-.q.poop { background: #F3EBDD; }
+.q.diaper {
+  padding: 0;
+  overflow: hidden;
+  background: #E3F0EA;
+}
+.q.solid { background: #F7EDD6; }
+
+.diaper-split {
+  display: flex;
+  height: 100%;
+}
+
+.diaper-half {
+  flex: 1;
+  padding: 28rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.diaper-half.pee {
+  background: #E3F0EA;
+}
+
+.diaper-half.poop {
+  background: #F3EBDD;
+}
+
+.diaper-half .q-k {
+  font-size: 36rpx;
+}
 
 .more-link {
   text-align: center;

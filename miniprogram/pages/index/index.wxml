@@ -52,21 +52,29 @@
       <text class="q-k">{{activeSleep ? '醒来' : '睡觉'}}</text>
       <text class="q-s">{{activeSleep ? '点一下结束' : '点一下开始'}}</text>
     </view>
-    <view class="q pee" data-key="pee" bindtap="saveDiaper">
+    <view class="q diaper">
       <view class="q-cut"></view>
-      <view class="q-plus" data-key="pee" catchtap="openDiaperBackfill">补录</view>
-      <text class="q-k">嘘嘘</text>
-      <text class="q-s">一键记下</text>
+      <view class="q-plus" catchtap="openDiaperBackfill">补录</view>
+      <view class="diaper-split">
+        <view class="diaper-half pee" data-key="pee" bindtap="saveDiaper">
+          <text class="q-k">嘘嘘</text>
+          <text class="q-s">一键记下</text>
+        </view>
+        <view class="diaper-half poop" data-key="poop" bindtap="saveDiaper">
+          <text class="q-k">便便</text>
+          <text class="q-s">一键记下</text>
+        </view>
+      </view>
     </view>
-    <view class="q poop" data-key="poop" bindtap="saveDiaper">
+    <view class="q solid" bindtap="openSolid">
       <view class="q-cut"></view>
-      <view class="q-plus" data-key="poop" catchtap="openDiaperBackfill">补录</view>
-      <text class="q-k">便便</text>
-      <text class="q-s">一键记下</text>
+      <view class="q-plus" catchtap="openSolid">补录</view>
+      <text class="q-k">辅食</text>
+      <text class="q-s">点一下记下</text>
     </view>
   </view>
 
-  <view class="more-link" bindtap="openMore">身高 · 体重 · 体温 · 辅食</view>
+  <view class="more-link" bindtap="openMore">身高 · 体重 · 体温</view>
 
   <view class="card recent-card">
     <view class="section-title">刚才记下的</view>
