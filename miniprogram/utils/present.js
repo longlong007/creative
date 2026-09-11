@@ -2,6 +2,14 @@ const format = require('./format')
 const stats = require('./stats')
 const { MILK_SUBTYPES, DIAPER_SUBTYPES, MILK_AMOUNTS, BREAST_MINUTES, TIME_OFFSETS, MORE_ACTIONS } = require('./constants')
 
+function belongsToDay(rec, dayStart, dayEnd, now) {
+  if (rec.type === 'sleep') {
+    const end = rec.endAt != null ? rec.endAt : now
+    return rec.startAt <= dayEnd && end >= dayStart
+  }
+  return rec.startAt >= dayStart && rec.startAt <= dayEnd
+}
+
 function presentHome(snap, now) {
   const n = now != null ? now : Date.now()
   const baby = snap.baby
@@ -27,7 +35,7 @@ function presentHome(snap, now) {
     lastAmount: lastAmount || 120,
     activeSleep: sleep,
     activeSleepText: sleep ? format.formatDurationMin((n - sleep.startAt) / 60000) : '',
-    recent: records.filter((rec) => rec.startAt >= dayStart && rec.startAt <= dayEnd)
+    recent: records.filter((rec) => belongsToDay(rec, dayStart, dayEnd, n))
   }
 }
 

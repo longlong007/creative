@@ -128,13 +128,26 @@ async function run() {
     const todayMilk = { id: '1', type: 'milk', amount: 120, startAt: now - 3600000 }
     const todayDiaper = { id: '2', type: 'diaper', subtype: 'pee', startAt: now - 60000 }
     const yesterdayMilk = { id: '3', type: 'milk', amount: 80, startAt: now - 48 * 3600000 }
+    const overnightSleep = {
+      id: '4',
+      type: 'sleep',
+      startAt: new Date(2026, 7, 30, 23, 0, 0).getTime(),
+      endAt: new Date(2026, 7, 31, 7, 0, 0).getTime()
+    }
+    const yesterdaySleep = {
+      id: '5',
+      type: 'sleep',
+      startAt: new Date(2026, 7, 30, 14, 0, 0).getTime(),
+      endAt: new Date(2026, 7, 30, 16, 0, 0).getTime()
+    }
     const home = present.presentHome({
       baby: { name: '小芽', birthday: '2026-01-01' },
-      records: [todayDiaper, todayMilk, yesterdayMilk]
+      records: [todayDiaper, todayMilk, overnightSleep, yesterdayMilk, yesterdaySleep]
     }, now)
-    assertEq(home.recent.length, 2)
+    assertEq(home.recent.length, 3)
     assertEq(home.recent[0].id, '2')
     assertEq(home.recent[1].id, '1')
+    assertEq(home.recent[2].id, '4')
   })
 
   await test('db local family and quick records', async () => {
