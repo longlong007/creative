@@ -1,0 +1,117 @@
+.page {
+  padding: 24rpx 28rpx 60rpx;
+}
+
+.lead {
+  font-size: 48rpx;
+  font-weight: 800;
+}
+
+.range {
+  margin: 8rpx 0 24rpx;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.m {
+  padding: 24rpx;
+}
+
+.mv {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 750;
+}
+
+.mk {
+  color: #8A8178;
+  font-size: 22rpx;
+}
+
+.block {
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.p {
+  margin-bottom: 16rpx;
+  line-height: 1.7;
+}
+
+.li {
+  padding: 8rpx 0;
+  line-height: 1.6;
+}
+
+.ai-card {
+  border: 2rpx solid #F3D3C8;
+}
+
+.ai-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.ai-desc {
+  margin-bottom: 20rpx;
+  line-height: 1.6;
+}
+
+.think {
+  font-size: 22rpx;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: #F3EEE7;
+  color: #8A8178;
+}
+
+.think.on {
+  background: #2C2622;
+  color: #fff;
+}
+
+.ai-btn {
+  margin-top: 24rpx;
+}
+
+.ai-error {
+  color: #C45C4A;
+  margin-top: 16rpx;
+  line-height: 1.6;
+}
+
+.tiny {
+  font-size: 22rpx;
+  margin-top: 12rpx;
+  line-height: 1.6;
+}
+
+.ai-result {
+  margin-top: 28rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #F0E8DE;
+}
+
+.ai-meta {
+  font-size: 22rpx;
+  color: #8A8178;
+  margin-bottom: 16rpx;
+}
+
+.link {
+  color: #E07A5F;
+  padding: 8rpx 0 4rpx;
+}
+
+.alt-btn {
+  margin-top: 20rpx;
+  background: #F3EEE7;
+  color: #2C2622;
+}

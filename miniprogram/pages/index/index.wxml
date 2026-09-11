@@ -1,0 +1,215 @@
+<view class="page safe-bottom" wx:if="{{baby}}">
+  <view class="top">
+    <view class="baby" bindtap="goFamily">
+      <view class="avatar {{baby.gender === 'boy' ? 'boy' : 'girl'}}">{{baby.name ? baby.name[0] : '芽'}}</view>
+      <view class="baby-meta">
+        <view class="name-row">
+          <text class="name">{{baby.name}}</text>
+          <text class="age">{{ageText}}</text>
+        </view>
+        <text class="hint">一家人一起记</text>
+      </view>
+    </view>
+    <view class="insight" bindtap="goInsights">洞察</view>
+  </view>
+
+  <view class="sleep-banner tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" wx:if="{{activeSleep}}" bindtap="toggleSleep">
+    <view>
+      <text class="sleep-k">宝宝睡着了</text>
+      <text class="sleep-v">已经 {{activeSleepText}}</text>
+    </view>
+    <view class="wake-btn">醒来</view>
+  </view>
+
+  <view class="stats card">
+    <view class="stat">
+      <text class="stat-v">{{todayMilk}}</text>
+      <text class="stat-k">今日奶量</text>
+    </view>
+    <view class="stat">
+      <text class="stat-v">{{todaySleep}}</text>
+      <text class="stat-k">今日睡眠</text>
+    </view>
+    <view class="stat">
+      <text class="stat-v">{{todayDiaper}}</text>
+      <text class="stat-k">尿布</text>
+    </view>
+  </view>
+
+  <view class="last" wx:if="{{lastMilkAgo}}">上次 {{lastMilkTitle}} · {{lastMilkAgo}}</view>
+  <view class="last" wx:else>点下面大按钮，一两下就能记下</view>
+
+  <view class="grid">
+    <view class="q milk tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" bindtap="openMilk">
+      <view class="q-cut"></view>
+      <view class="q-plus tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" hover-stop-propagation="true" data-backfill="1" catchtap="openMilk">补录</view>
+      <text class="q-k">喝奶</text>
+      <text class="q-s">上次 {{lastAmount}}ml</text>
+    </view>
+    <view class="q sleep tap {{activeSleep ? 'on' : ''}}" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" bindtap="toggleSleep">
+      <view class="q-cut"></view>
+      <view class="q-plus tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" hover-stop-propagation="true" catchtap="openSleepBackfill">补录</view>
+      <text class="q-k">{{activeSleep ? '醒来' : '睡觉'}}</text>
+      <text class="q-s">{{activeSleep ? '点一下结束' : '点一下开始'}}</text>
+    </view>
+    <view class="q diaper">
+      <view class="q-cut"></view>
+      <view class="q-plus tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" hover-stop-propagation="true" catchtap="openDiaperBackfill">补录</view>
+      <view class="diaper-split">
+        <view class="diaper-half pee tap" hover-class="tap-fill-on" hover-start-time="0" hover-stay-time="80" data-key="pee" bindtap="saveDiaper">
+          <text class="q-k">嘘嘘</text>
+          <text class="q-s">一键记下</text>
+        </view>
+        <view class="diaper-half poop tap" hover-class="tap-fill-on" hover-start-time="0" hover-stay-time="80" data-key="poop" bindtap="saveDiaper">
+          <text class="q-k">便便</text>
+          <text class="q-s">一键记下</text>
+        </view>
+      </view>
+    </view>
+    <view class="q solid tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" bindtap="openSolid">
+      <view class="q-cut"></view>
+      <view class="q-plus tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" hover-stop-propagation="true" catchtap="openSolid">补录</view>
+      <text class="q-k">辅食</text>
+      <text class="q-s">点一下记下</text>
+    </view>
+  </view>
+
+  <view class="more-link tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" bindtap="openMore">身高 · 体重 · 体温</view>
+
+  <view class="card recent-card">
+    <view class="section-title">今天记下的</view>
+    <view wx:if="{{!recent.length}}" class="empty">今天还没有记录，从喝奶或睡觉开始</view>
+    <record-item wx:for="{{recent}}" wx:key="id" record="{{item}}" bind:edit="editRecord" />
+  </view>
+  <view class="tab-space"></view>
+</view>
+
+<view class="mask" wx:if="{{sheet}}" bindtap="closeSheet"></view>
+
+<view class="sheet {{sheet === 'milk' ? 'show' : ''}}" wx:if="{{sheet === 'milk'}}" catchtap="noop">
+  <view class="sheet-handle"></view>
+  <view class="sheet-title">{{timeOffset === 'custom' ? '补记喝奶' : '记一笔喝奶'}}</view>
+  <view class="sheet-sub">{{timeOffset === 'custom' ? '改日期时间，漏记也能补上' : '默认用上次的量，改一下也能马上存'}}</view>
+
+  <view class="chip-row">
+    <view
+      wx:for="{{milkSubtypes}}"
+      wx:key="key"
+      class="chip tap {{milkSubtype === item.key ? 'on' : ''}}"
+      hover-class="tap-on"
+      hover-start-time="0"
+      hover-stay-time="80"
+      data-key="{{item.key}}"
+      bindtap="chooseSubtype"
+    >{{item.label}}</view>
+  </view>
+
+  <view class="amount-grid">
+    <view
+      wx:for="{{isBreast ? breastMinutes : milkAmounts}}"
+      wx:key="*this"
+      class="amt tap {{milkAmount === item ? 'on' : ''}}"
+      hover-class="tap-on"
+      hover-start-time="0"
+      hover-stay-time="80"
+      data-v="{{item}}"
+      bindtap="chooseAmount"
+    >{{item}}{{isBreast ? '分' : 'ml'}}</view>
+  </view>
+  <input class="amt-input" type="digit" value="{{milkAmount}}" bindinput="onAmountInput" placeholder="自定义" />
+
+  <view class="chip-row time-row">
+    <view
+      wx:for="{{timeOffsets}}"
+      wx:key="key"
+      class="chip tap {{timeOffset === item.key ? 'on' : ''}}"
+      hover-class="tap-on"
+      hover-start-time="0"
+      hover-stay-time="80"
+      data-key="{{item.key}}"
+      bindtap="chooseTime"
+    >{{item.label}}</view>
+  </view>
+  <view wx:if="{{timeOffset === 'custom'}}">
+    <view class="when-field">
+      <text>日期</text>
+      <picker mode="date" value="{{formDate}}" bindchange="onMilkDate">
+        <view>{{formDate}}</view>
+      </picker>
+    </view>
+    <view class="when-field">
+      <text>时间</text>
+      <picker mode="time" value="{{formTime}}" bindchange="onMilkTime">
+        <view>{{formTime}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <button class="btn btn-primary save" bindtap="saveMilk">记下 {{milkAmount}}{{isBreast ? '分钟' : 'ml'}}</button>
+</view>
+
+<view class="sheet {{sheet === 'more' ? 'show' : ''}}" wx:if="{{sheet === 'more'}}" catchtap="noop">
+  <view class="sheet-handle"></view>
+  <view class="sheet-title">记点别的</view>
+  <view class="sheet-sub">身高体重这些不常用的</view>
+  <view class="more-list">
+    <view class="more-item tap" hover-class="tap-row-on" hover-start-time="0" hover-stay-time="80" wx:for="{{moreActions}}" wx:key="key" data-type="{{item.type}}" bindtap="openMoreForm">
+      <text class="more-n">{{item.label}}</text>
+      <text class="more-d">{{item.desc}}</text>
+    </view>
+  </view>
+</view>
+
+<view class="sheet {{sheet === 'form' ? 'show' : ''}}" wx:if="{{sheet === 'form'}}" catchtap="noop">
+  <view class="sheet-handle"></view>
+  <view class="sheet-title">{{formTitle}}</view>
+  <view class="chip-row diaper-row" wx:if="{{moreForm.type === 'diaper'}}">
+    <view
+      wx:for="{{diaperSubtypes}}"
+      wx:key="key"
+      class="chip tap {{moreForm.subtype === item.key ? 'on' : ''}}"
+      hover-class="tap-on"
+      hover-start-time="0"
+      hover-stay-time="80"
+      data-key="{{item.key}}"
+      bindtap="chooseDiaperSubtype"
+    >{{item.label}}</view>
+  </view>
+  <view class="chip-row solid-row" wx:if="{{moreForm.type === 'solid'}}">
+    <view
+      wx:for="{{solidFoods}}"
+      wx:key="*this"
+      class="chip tap {{moreForm.subtype === item ? 'on' : ''}}"
+      hover-class="tap-on"
+      hover-start-time="0"
+      hover-stay-time="80"
+      data-key="{{item}}"
+      bindtap="chooseSolidFood"
+    >{{item}}</view>
+  </view>
+  <view class="add-food" wx:if="{{moreForm.type === 'solid'}}">
+    <input placeholder="添加辅食名称" value="{{solidFoodInput}}" bindinput="onSolidFoodInput" confirm-type="done" bindconfirm="addSolidFood" />
+    <view class="add-food-btn tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" bindtap="addSolidFood">添加</view>
+  </view>
+  <view class="when-field">
+    <text>日期</text>
+    <picker mode="date" value="{{moreForm.date}}" bindchange="onFormDate">
+      <view>{{moreForm.date}}</view>
+    </picker>
+  </view>
+  <view class="when-field">
+    <text>时间</text>
+    <picker mode="time" value="{{moreForm.time}}" bindchange="onFormTime">
+      <view>{{moreForm.time}}</view>
+    </picker>
+  </view>
+  <input
+    wx:if="{{moreForm.type === 'height' || moreForm.type === 'weight' || moreForm.type === 'temperature'}}"
+    class="amt-input"
+    type="digit"
+    placeholder="{{moreForm.type === 'height' ? '例如 68.5' : moreForm.type === 'weight' ? '例如 8.2' : '例如 36.8'}}"
+    bindinput="onFormValue"
+  />
+  <input class="amt-input" placeholder="备注，可空" bindinput="onFormNote" />
+  <button class="btn btn-primary save" bindtap="saveMore">保存</button>
+</view>

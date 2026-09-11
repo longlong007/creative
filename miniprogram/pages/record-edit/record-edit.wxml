@@ -1,0 +1,45 @@
+<view class="page">
+  <view class="title">{{title}}</view>
+
+  <view class="card">
+    <view class="field">
+      <text>{{rec.type === 'sleep' ? '入睡日期' : '日期'}}</text>
+      <picker mode="date" value="{{date}}" bindchange="onDate">
+        <view>{{date}}</view>
+      </picker>
+    </view>
+    <view class="field">
+      <text>{{rec.type === 'sleep' ? '入睡时间' : '时间'}}</text>
+      <picker mode="time" value="{{time}}" bindchange="onTime">
+        <view>{{time}}</view>
+      </picker>
+    </view>
+    <view class="field" wx:if="{{rec.type === 'sleep'}}">
+      <text>醒来日期</text>
+      <picker mode="date" value="{{endDate}}" bindchange="onEndDate">
+        <view>{{endDate}}</view>
+      </picker>
+    </view>
+    <view class="field" wx:if="{{rec.type === 'sleep'}}">
+      <text>醒来时间</text>
+      <picker mode="time" value="{{endTime}}" bindchange="onEndTime">
+        <view>{{endTime}}</view>
+      </picker>
+    </view>
+    <view class="field" wx:if="{{!isNewSleep && rec.type !== 'sleep' && rec.type !== 'diaper' && rec.type !== 'note' && rec.type !== 'solid'}}">
+      <text>数值</text>
+      <input type="digit" value="{{amount}}" bindinput="onAmount" />
+    </view>
+    <view class="field" wx:if="{{rec.type === 'solid'}}">
+      <text>辅食</text>
+      <input value="{{subtype}}" bindinput="onSubtype" placeholder="辅食名称" />
+    </view>
+    <view class="field">
+      <text>备注</text>
+      <input value="{{note}}" bindinput="onNote" placeholder="可空" />
+    </view>
+  </view>
+
+  <button class="btn btn-primary" bindtap="save">保存</button>
+  <button class="btn danger" wx:if="{{!isNewSleep}}" bindtap="remove">删除</button>
+</view>

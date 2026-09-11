@@ -1,0 +1,16 @@
+<view
+  class="row {{open ? 'open' : ''}} {{pressed ? 'pressed' : ''}}"
+  bindtouchstart="onTouchStart"
+  bindtouchend="onTouchEnd"
+  bindtouchcancel="onTouchCancel"
+  bindtap="onTap"
+>
+  <view class="dot" style="background: {{bg}}; color: {{color}}">
+    <view class="dot-inner" style="background: {{color}}"></view>
+  </view>
+  <view class="main">
+    <text class="title">{{title}}</text>
+    <text class="meta" wx:if="{{showActor && actor}}">{{actor}}记下的</text>
+  </view>
+  <text class="time">{{time}}</text>
+</view>

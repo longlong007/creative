@@ -1,0 +1,39 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/timeline/timeline",
+    "pages/growth/growth",
+    "pages/family/family",
+    "pages/onboarding/onboarding",
+    "pages/join/join",
+    "pages/insights/insights",
+    "pages/record-edit/record-edit",
+    "pages/baby-edit/baby-edit"
+  ],
+  "window": {
+    "navigationBarTitleText": "小芽记",
+    "navigationBarBackgroundColor": "#F7F1EA",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F7F1EA",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#8A8178",
+    "selectedColor": "#E07A5F",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "记录" },
+      { "pagePath": "pages/timeline/timeline", "text": "时间轴" },
+      { "pagePath": "pages/growth/growth", "text": "生长" },
+      { "pagePath": "pages/family/family", "text": "家庭" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents",
+  "usingComponents": {
+    "record-item": "/components/record-item/record-item"
+  }
+}

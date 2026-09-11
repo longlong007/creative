@@ -1,0 +1,58 @@
+.page {
+  min-height: 100vh;
+  padding: 80rpx 48rpx;
+}
+
+.mark {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 40rpx;
+  background: #E07A5F;
+  color: #fff;
+  font-size: 56rpx;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.title {
+  font-size: 56rpx;
+  font-weight: 800;
+  margin-bottom: 16rpx;
+}
+
+.sub {
+  font-size: 30rpx;
+  color: #8A8178;
+  line-height: 1.6;
+  margin-bottom: 48rpx;
+}
+
+.points {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  color: #5C554E;
+  margin-bottom: 64rpx;
+  font-size: 28rpx;
+}
+
+.input {
+  height: 96rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 0 28rpx;
+  margin: 16rpx 0 32rpx;
+}
+
+.label {
+  color: #8A8178;
+  margin-top: 12rpx;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+}
