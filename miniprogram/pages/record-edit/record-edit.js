@@ -101,7 +101,7 @@ Page({
         source: 'manual'
       })
       wx.showToast({ title: '记下了', icon: 'success' })
-      setTimeout(() => wx.navigateBack(), 400)
+      this.goBack()
       return
     }
     const patch = {
@@ -128,18 +128,36 @@ Page({
     if (this.data.amount !== '' && this.data.rec.type !== 'solid') patch.amount = Number(this.data.amount)
     await db.updateRecord(this.data.id, patch)
     wx.showToast({ title: '已保存', icon: 'success' })
-    setTimeout(() => wx.navigateBack(), 400)
+    this.goBack()
   },
 
   remove() {
     wx.showModal({
       title: '删掉这条？',
       content: '删了就不能恢复',
-      success: async (res) => {
+      success: (res) => {
         if (!res.confirm) return
-        await db.deleteRecord(this.data.id)
-        wx.navigateBack()
+        this.confirmRemove()
       }
     })
+  },
+
+  async confirmRemove() {
+    try {
+      await db.deleteRecord(this.data.id)
+    } catch (err) {
+      wx.showToast({ title: (err && err.message) || '删除失败', icon: 'none' })
+      return
+    }
+    wx.showToast({ title: '已删除', icon: 'success' })
+    this.goBack()
+  },
+
+  goBack() {
+    setTimeout(() => {
+      wx.navigateBack({
+        fail: () => wx.switchTab({ url: '/pages/index/index' })
+      })
+    }, 400)
   }
 })
