@@ -43,16 +43,31 @@ Page({
       wx.redirectTo({ url: '/pages/onboarding/onboarding' })
       return
     }
+    this.bindDb()
     this.refresh()
     this.startTick()
   },
 
   onHide() {
     this.stopTick()
+    this.unbindDb()
   },
 
   onUnload() {
     this.stopTick()
+    this.unbindDb()
+  },
+
+  bindDb() {
+    this.unbindDb()
+    this._unbindDb = db.onChange(() => this.refresh())
+  },
+
+  unbindDb() {
+    if (this._unbindDb) {
+      this._unbindDb()
+      this._unbindDb = null
+    }
   },
 
   startTick() {

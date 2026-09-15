@@ -55,6 +55,30 @@ Page({
       subtype: rec.subtype || '',
       meta: RECORD_TYPES[rec.type]
     })
+    this.bindDb()
+  },
+
+  onUnload() {
+    this.unbindDb()
+  },
+
+  bindDb() {
+    this.unbindDb()
+    this._unbindDb = db.onChange(() => {
+      if (this._leaving || this.data.isNewSleep || !this.data.id) return
+      if (!db.getRecord(this.data.id)) {
+        this._leaving = true
+        wx.showToast({ title: '已被删除', icon: 'none' })
+        this.goBack()
+      }
+    })
+  },
+
+  unbindDb() {
+    if (this._unbindDb) {
+      this._unbindDb()
+      this._unbindDb = null
+    }
   },
 
   onAmount(e) {
@@ -143,9 +167,11 @@ Page({
   },
 
   async confirmRemove() {
+    this._leaving = true
     try {
       await db.deleteRecord(this.data.id)
     } catch (err) {
+      this._leaving = false
       wx.showToast({ title: (err && err.message) || '删除失败', icon: 'none' })
       return
     }

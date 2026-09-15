@@ -30,6 +30,32 @@ Page({
 
   async onShow() {
     await getApp().whenReady()
+    this.bindDb()
+    this.refresh()
+    this.restoreCache()
+  },
+
+  onHide() {
+    this.unbindDb()
+  },
+
+  onUnload() {
+    this.unbindDb()
+  },
+
+  bindDb() {
+    this.unbindDb()
+    this._unbindDb = db.onChange(() => this.refresh())
+  },
+
+  unbindDb() {
+    if (this._unbindDb) {
+      this._unbindDb()
+      this._unbindDb = null
+    }
+  },
+
+  refresh() {
     const snap = db.snapshot()
     const report = insights.buildReport(snap.baby, snap.records)
     this.setData({
@@ -42,7 +68,6 @@ Page({
       rangeText: `${format.formatDate(report.from)} – ${format.formatDate(report.to)}`,
       canAnalyze: ai.canAnalyze()
     })
-    this.restoreCache()
   },
 
   cacheKey() {

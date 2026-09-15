@@ -21,6 +21,17 @@ function clone(obj) {
   return JSON.parse(JSON.stringify(obj))
 }
 
+function isMissingDocumentError(err) {
+  const msg = String((err && (err.errMsg || err.message)) || err || '')
+  return /cannot remove document/i.test(msg)
+}
+
+function watchNeedsRefresh(snapshot) {
+  if (!snapshot || snapshot.type === 'init') return false
+  const changes = snapshot.docChanges || []
+  return changes.some((c) => (c.dataType || c.queueType) !== 'init')
+}
+
 class Database {
   constructor() {
     this.mode = 'local'
@@ -28,6 +39,10 @@ class Database {
     this.state = emptyState()
     this.ready = false
     this._watchers = []
+    this._recordWatcher = null
+    this._watchedBabyId = ''
+    this._refreshingRecords = false
+    this._pendingRecordRefresh = false
   }
 
   async init() {
@@ -40,6 +55,7 @@ class Database {
         if (hasCloudFamily) {
           this.mode = 'cloud'
           this.ready = true
+          this._startRecordWatch()
           this._notify()
           return this
         }
@@ -201,6 +217,76 @@ class Database {
     this.state.records = all
   }
 
+  _stopRecordWatch() {
+    if (this._recordWatcher && this._recordWatcher.close) {
+      try {
+        this._recordWatcher.close()
+      } catch (e) {
+        console.warn('record watch close failed', e)
+      }
+    }
+    this._recordWatcher = null
+    this._watchedBabyId = ''
+  }
+
+  _startRecordWatch() {
+    if (this.mode !== 'cloud' || typeof wx === 'undefined' || !wx.cloud) {
+      this._stopRecordWatch()
+      return
+    }
+    const baby = this.currentBaby()
+    if (!baby) {
+      this._stopRecordWatch()
+      return
+    }
+    if (this._recordWatcher && this._watchedBabyId === baby.id) return
+    this._stopRecordWatch()
+    this._watchedBabyId = baby.id
+    const cloudDb = wx.cloud.database()
+    let started = false
+    try {
+      this._recordWatcher = cloudDb.collection('xiaoya_records')
+        .where({ babyId: baby.id })
+        .watch({
+          onChange: (snapshot) => {
+            if (!started) {
+              started = true
+              return
+            }
+            const next = snapshot && snapshot.type === 'init'
+              ? { docChanges: [{ dataType: 'replace' }] }
+              : snapshot
+            this._onRecordWatchChange(next)
+          },
+          onError: (err) => {
+            console.warn('record watch error', err)
+          }
+        })
+    } catch (e) {
+      console.warn('record watch start failed', e)
+      this._recordWatcher = null
+      this._watchedBabyId = ''
+    }
+  }
+
+  async _onRecordWatchChange(snapshot) {
+    if (!watchNeedsRefresh(snapshot)) return
+    this._pendingRecordRefresh = true
+    if (this._refreshingRecords) return
+    this._refreshingRecords = true
+    try {
+      while (this._pendingRecordRefresh) {
+        this._pendingRecordRefresh = false
+        await this._refreshCloudRecords()
+        this._notify()
+      }
+    } catch (e) {
+      console.warn('record watch refresh failed', e)
+    } finally {
+      this._refreshingRecords = false
+    }
+  }
+
   _fromCloud(doc) {
     if (!doc) return doc
     const row = Object.assign({}, doc)
@@ -245,6 +331,7 @@ class Database {
       const ok = await this._loadCloud()
       if (!ok) throw new Error('家庭已创建，但同步失败。请重新打开小程序。')
       this.mode = 'cloud'
+      this._startRecordWatch()
       this.persist()
       return this.snapshot()
     }
@@ -274,6 +361,7 @@ class Database {
       const ok = await this._loadCloud(familyId)
       if (!ok) throw new Error('已加入，但同步失败。请重新打开小程序。')
       this.mode = 'cloud'
+      this._startRecordWatch()
       this.persist()
       return this.snapshot()
     }
@@ -301,6 +389,10 @@ class Database {
     }
     this.state.babies.push(baby)
     this.state.currentBabyId = baby.id
+    if (this.mode === 'cloud') {
+      this.state.records = []
+      this._startRecordWatch()
+    }
     this.persist()
     return baby
   }
@@ -323,7 +415,10 @@ class Database {
     if (typeof wx !== 'undefined' && wx.setStorageSync) {
       wx.setStorageSync('xiaoya_current_baby', id)
     }
-    if (this.mode === 'cloud') await this._refreshCloudRecords()
+    if (this.mode === 'cloud') {
+      await this._refreshCloudRecords()
+      this._startRecordWatch()
+    }
     this.persist()
   }
 
@@ -388,7 +483,11 @@ class Database {
     this.state.records = this.state.records.filter((r) => r.id !== id)
     if (this.mode === 'cloud') {
       const db = wx.cloud.database()
-      await db.collection('xiaoya_records').doc(id).remove()
+      try {
+        await db.collection('xiaoya_records').doc(id).remove()
+      } catch (err) {
+        if (!isMissingDocumentError(err)) throw err
+      }
     }
     this.persist()
   }
@@ -450,10 +549,13 @@ class Database {
   }
 
   async resetLocal() {
+    this._stopRecordWatch()
     this.state = emptyState()
     this.persist()
   }
 }
 
 const db = new Database()
+db.watchNeedsRefresh = watchNeedsRefresh
+db.isMissingDocumentError = isMissingDocumentError
 module.exports = db
