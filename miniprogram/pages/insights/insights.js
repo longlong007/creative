@@ -31,6 +31,7 @@ Page({
   async onShow() {
     await getApp().whenReady()
     this.bindDb()
+    await db.syncRecords()
     this.refresh()
     this.restoreCache()
   },

@@ -253,23 +253,14 @@ async function run() {
     assert(out.text.indexOf('· 可能漏记午睡') !== -1)
   })
 
-  await test('watchNeedsRefresh ignores init snapshot', () => {
-    assertEq(db.watchNeedsRefresh({ type: 'init', docChanges: [{ dataType: 'init' }] }), false)
-    assertEq(db.watchNeedsRefresh(null), false)
-  })
-
-  await test('watchNeedsRefresh refreshes on add/update/remove', () => {
-    assertEq(db.watchNeedsRefresh({ docChanges: [{ dataType: 'add' }] }), true)
-    assertEq(db.watchNeedsRefresh({ docChanges: [{ dataType: 'update' }] }), true)
-    assertEq(db.watchNeedsRefresh({ docChanges: [{ dataType: 'remove' }] }), true)
-  })
-
-  await test('isMissingDocumentError matches cloud remove message', () => {
-    const err = {
-      errMsg: 'document.remove:fail cannot remove document with _id abc, please make sure that the document exists and you have the corresponding Write permission'
-    }
-    assertEq(db.isMissingDocumentError(err), true)
-    assertEq(db.isMissingDocumentError(new Error('network timeout')), false)
+  await test('watchSnapshotRecords uses docs even without docChanges', () => {
+    const docs = [{ _id: 'a', startAt: 2 }, { _id: 'b', startAt: 1 }]
+    const fromInit = db.watchSnapshotRecords({ type: 'init', docs })
+    const fromLater = db.watchSnapshotRecords({ docs, docChanges: [] })
+    assertEq(fromInit.length, 2)
+    assertEq(fromLater[0]._id, 'a')
+    assertEq(db.watchSnapshotRecords(null), null)
+    assertEq(db.watchSnapshotRecords({ docChanges: [{ dataType: 'remove' }] }), null)
   })
 
   await test('ai prompt helpers stay in sync', () => {

@@ -21,15 +21,9 @@ function clone(obj) {
   return JSON.parse(JSON.stringify(obj))
 }
 
-function isMissingDocumentError(err) {
-  const msg = String((err && (err.errMsg || err.message)) || err || '')
-  return /cannot remove document/i.test(msg)
-}
-
-function watchNeedsRefresh(snapshot) {
-  if (!snapshot || snapshot.type === 'init') return false
-  const changes = snapshot.docChanges || []
-  return changes.some((c) => (c.dataType || c.queueType) !== 'init')
+function watchSnapshotRecords(snapshot) {
+  if (!snapshot || !Array.isArray(snapshot.docs)) return null
+  return snapshot.docs
 }
 
 class Database {
@@ -146,6 +140,22 @@ class Database {
     this._notify()
   }
 
+  async _callManage(data) {
+    try {
+      const res = await wx.cloud.callFunction({ name: 'manageRecord', data })
+      if (res.result && res.result.ok === false) {
+        throw new Error(res.result.error || '操作失败')
+      }
+      return res.result
+    } catch (err) {
+      const msg = String((err && (err.errMsg || err.message)) || '')
+      if (/FUNCTION_NOT_FOUND|cannot find/i.test(msg)) {
+        throw new Error('请先上传云函数 manageRecord')
+      }
+      throw err
+    }
+  }
+
   async _loadCloud(preferredFamilyId) {
     const db = wx.cloud.database()
     const login = await wx.cloud.callFunction({ name: 'xiaoyaLogin' })
@@ -217,6 +227,24 @@ class Database {
     this.state.records = all
   }
 
+  async syncRecords() {
+    if (this.mode !== 'cloud') return
+    if (this._syncing) return this._syncing
+    const now = Date.now()
+    if (now - (this._lastSyncAt || 0) < 1000) return
+    this._syncing = (async () => {
+      try {
+        await this._refreshCloudRecords()
+        this._lastSyncAt = Date.now()
+        this._notify()
+        this._startRecordWatch()
+      } finally {
+        this._syncing = null
+      }
+    })()
+    return this._syncing
+  }
+
   _stopRecordWatch() {
     if (this._recordWatcher && this._recordWatcher.close) {
       try {
@@ -243,20 +271,12 @@ class Database {
     this._stopRecordWatch()
     this._watchedBabyId = baby.id
     const cloudDb = wx.cloud.database()
-    let started = false
     try {
       this._recordWatcher = cloudDb.collection('xiaoya_records')
         .where({ babyId: baby.id })
         .watch({
           onChange: (snapshot) => {
-            if (!started) {
-              started = true
-              return
-            }
-            const next = snapshot && snapshot.type === 'init'
-              ? { docChanges: [{ dataType: 'replace' }] }
-              : snapshot
-            this._onRecordWatchChange(next)
+            this._onRecordWatchChange(snapshot)
           },
           onError: (err) => {
             console.warn('record watch error', err)
@@ -270,7 +290,15 @@ class Database {
   }
 
   async _onRecordWatchChange(snapshot) {
-    if (!watchNeedsRefresh(snapshot)) return
+    const docs = watchSnapshotRecords(snapshot)
+    if (docs) {
+      this.state.records = docs
+        .map((d) => this._fromCloud(d))
+        .sort((a, b) => (b.startAt || 0) - (a.startAt || 0))
+      this._notify()
+      return
+    }
+    if (!snapshot || snapshot.type === 'init') return
     this._pendingRecordRefresh = true
     if (this._refreshingRecords) return
     this._refreshingRecords = true
@@ -466,29 +494,28 @@ class Database {
   async updateRecord(id, patch) {
     const rec = this.state.records.find((r) => r.id === id)
     if (!rec) return null
-    Object.assign(rec, patch, { updatedAt: Date.now() })
-    if (rec.type === 'sleep' && rec.startAt && rec.endAt) {
-      rec.durationMin = Math.max(1, Math.round((rec.endAt - rec.startAt) / 60000))
+    const nextPatch = Object.assign({}, patch, { updatedAt: Date.now() })
+    if ((rec.type === 'sleep' || nextPatch.type === 'sleep') && (nextPatch.startAt || rec.startAt) && (nextPatch.endAt || rec.endAt)) {
+      const startAt = nextPatch.startAt != null ? nextPatch.startAt : rec.startAt
+      const endAt = nextPatch.endAt != null ? nextPatch.endAt : rec.endAt
+      nextPatch.durationMin = Math.max(1, Math.round((endAt - startAt) / 60000))
     }
     if (this.mode === 'cloud') {
-      const db = wx.cloud.database()
-      const data = Object.assign({}, patch, { updatedAt: rec.updatedAt, durationMin: rec.durationMin })
-      await db.collection('xiaoya_records').doc(id).update({ data })
+      await this._callManage({ action: 'update', id, patch: nextPatch })
+    }
+    Object.assign(rec, nextPatch)
+    if (rec.type === 'sleep' && rec.startAt && rec.endAt) {
+      rec.durationMin = Math.max(1, Math.round((rec.endAt - rec.startAt) / 60000))
     }
     this.persist()
     return rec
   }
 
   async deleteRecord(id) {
-    this.state.records = this.state.records.filter((r) => r.id !== id)
     if (this.mode === 'cloud') {
-      const db = wx.cloud.database()
-      try {
-        await db.collection('xiaoya_records').doc(id).remove()
-      } catch (err) {
-        if (!isMissingDocumentError(err)) throw err
-      }
+      await this._callManage({ action: 'remove', id })
     }
+    this.state.records = this.state.records.filter((r) => r.id !== id)
     this.persist()
   }
 
@@ -556,6 +583,5 @@ class Database {
 }
 
 const db = new Database()
-db.watchNeedsRefresh = watchNeedsRefresh
-db.isMissingDocumentError = isMissingDocumentError
+db.watchSnapshotRecords = watchSnapshotRecords
 module.exports = db

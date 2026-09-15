@@ -44,6 +44,7 @@ Page({
       return
     }
     this.bindDb()
+    await db.syncRecords()
     this.refresh()
     this.startTick()
   },

@@ -15,6 +15,12 @@ App({
     }
   },
 
+  onShow() {
+    if (this.globalData && this.globalData.ready) {
+      db.syncRecords()
+    }
+  },
+
   whenReady() {
     if (this.globalData && this.globalData.ready) return Promise.resolve()
     return new Promise((resolve) => {
