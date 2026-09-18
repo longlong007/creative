@@ -75,6 +75,11 @@
   padding: 24rpx 0;
 }
 
+.link {
+  color: #E07A5F;
+  padding: 16rpx 0;
+}
+
 .amt-input {
   height: 88rpx;
   background: #F7F1EA;

@@ -36,3 +36,8 @@
   color: #8A8178;
   padding: 80rpx 0;
 }
+
+.link {
+  color: #E07A5F;
+  padding: 20rpx 0;
+}

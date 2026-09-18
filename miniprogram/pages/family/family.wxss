@@ -76,3 +76,18 @@
   color: #E07A5F;
   padding: 12rpx 0;
 }
+
+.guest-title {
+  font-size: 44rpx;
+  font-weight: 750;
+  margin: 24rpx 8rpx 16rpx;
+}
+
+.guest-lead {
+  margin: 0 8rpx 40rpx;
+  line-height: 1.6;
+}
+
+.guest-page .btn {
+  margin-bottom: 16rpx;
+}

@@ -2,6 +2,7 @@ const db = require('../../utils/db')
 const stats = require('../../utils/stats')
 const format = require('../../utils/format')
 const { hideTabBar, showTabBar } = require('../../utils/tab')
+const { requireBaby } = require('../../utils/guest')
 
 function niceStep(raw) {
   if (!(raw > 0)) return 1
@@ -51,6 +52,7 @@ Page({
     weightText: '还没量',
     series: [],
     pressedId: '',
+    baby: null,
     sheet: false,
     formType: 'weight',
     formValue: '',
@@ -61,10 +63,6 @@ Page({
   async onShow() {
     showTabBar(this, 2)
     await getApp().whenReady()
-    if (!db.hasBaby()) {
-      wx.redirectTo({ url: '/pages/onboarding/onboarding' })
-      return
-    }
     this.bindDb()
     await db.syncRecords()
     this.refresh()
@@ -107,7 +105,8 @@ Page({
         v: p.v,
         t: p.t,
         tText: format.formatDate(p.t)
-      }))
+      })),
+      baby: db.currentBaby()
     })
     wx.nextTick(() => this.draw())
   },
@@ -118,6 +117,7 @@ Page({
   },
 
   openAdd(e) {
+    if (!requireBaby(db)) return
     const type = e.currentTarget.dataset.type || this.data.tab
     const parts = format.nowDateTime()
     hideTabBar(this)
@@ -191,6 +191,10 @@ Page({
       this._opening = false
       wx.navigateTo({ url: `/pages/record-edit/record-edit?id=${id}` })
     }, 140)
+  },
+
+  goOnboarding() {
+    wx.navigateTo({ url: '/pages/onboarding/onboarding' })
   },
 
   draw() {

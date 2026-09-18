@@ -10,9 +10,11 @@
     </view>
     <button class="btn btn-primary" bindtap="goCreate">给宝宝建一本</button>
     <button class="btn btn-ghost" bindtap="goJoin">我有邀请码</button>
+    <button class="btn btn-ghost skip" bindtap="skipLogin">暂不登录，先看看</button>
   </view>
 
   <view wx:else class="form">
+    <view class="back" bindtap="backHello">返回</view>
     <view class="title">宝宝叫什么？</view>
     <input class="input" placeholder="小名即可" value="{{babyName}}" bindinput="onName" maxlength="12" />
     <view class="label">性别</view>

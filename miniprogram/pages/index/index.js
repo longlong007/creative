@@ -2,6 +2,7 @@ const db = require('../../utils/db')
 const present = require('../../utils/present')
 const format = require('../../utils/format')
 const { hideTabBar, showTabBar } = require('../../utils/tab')
+const { requireBaby } = require('../../utils/guest')
 const { MILK_SUBTYPES, MILK_AMOUNTS, BREAST_MINUTES, TIME_OFFSETS, MORE_ACTIONS, DIAPER_SUBTYPES, FORM_TITLES, SOLID_FOODS } = require('../../utils/constants')
 
 Page({
@@ -39,14 +40,15 @@ Page({
   async onShow() {
     showTabBar(this, 0)
     await getApp().whenReady()
-    if (!db.hasBaby()) {
-      wx.redirectTo({ url: '/pages/onboarding/onboarding' })
-      return
+    if (db.hasBaby()) {
+      this.bindDb()
+      await db.syncRecords()
+      this.startTick()
+    } else {
+      this.unbindDb()
+      this.stopTick()
     }
-    this.bindDb()
-    await db.syncRecords()
     this.refresh()
-    this.startTick()
   },
 
   onHide() {
@@ -90,6 +92,7 @@ Page({
   },
 
   goInsights() {
+    if (!requireBaby(db)) return
     wx.navigateTo({ url: '/pages/insights/insights' })
   },
 
@@ -97,11 +100,20 @@ Page({
     wx.switchTab({ url: '/pages/family/family' })
   },
 
+  goOnboarding() {
+    wx.navigateTo({ url: '/pages/onboarding/onboarding' })
+  },
+
+  goJoin() {
+    wx.navigateTo({ url: '/pages/join/join' })
+  },
+
   nowParts() {
     return format.nowDateTime()
   },
 
   openMilk(e) {
+    if (!requireBaby(db)) return
     const last = this.data.lastAmount || 120
     const subtype = this.data.milkSubtype
     const meta = MILK_SUBTYPES.find((s) => s.key === subtype) || MILK_SUBTYPES[0]
@@ -119,14 +131,17 @@ Page({
   },
 
   openSleepBackfill() {
+    if (!requireBaby(db)) return
     wx.navigateTo({ url: '/pages/record-edit/record-edit?type=sleep' })
   },
 
   openDiaperBackfill() {
+    if (!requireBaby(db)) return
     this.openForm('diaper')
   },
 
   openSolid() {
+    if (!requireBaby(db)) return
     this.openForm('solid')
   },
 
@@ -210,6 +225,7 @@ Page({
   },
 
   async toggleSleep() {
+    if (!requireBaby(db)) return
     if (this.data.activeSleep) {
       await db.endSleep()
       wx.showToast({ title: '醒来了', icon: 'success' })
@@ -221,6 +237,7 @@ Page({
   },
 
   async saveDiaper(e) {
+    if (!requireBaby(db)) return
     const key = e.currentTarget.dataset.key
     await db.addRecord({ type: 'diaper', subtype: key, startAt: Date.now(), source: 'quick' })
     wx.showToast({ title: '记下了', icon: 'success' })
@@ -228,6 +245,7 @@ Page({
   },
 
   openMore() {
+    if (!requireBaby(db)) return
     hideTabBar(this)
     this.setData({ sheet: 'more' })
   },

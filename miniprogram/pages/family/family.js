@@ -17,10 +17,6 @@ Page({
   async onShow() {
     showTabBar(this, 3)
     await getApp().whenReady()
-    if (!db.hasBaby()) {
-      wx.redirectTo({ url: '/pages/onboarding/onboarding' })
-      return
-    }
     this.refresh()
   },
 
@@ -37,6 +33,10 @@ Page({
     })
   },
 
+  goOnboarding() {
+    wx.navigateTo({ url: '/pages/onboarding/onboarding' })
+  },
+
   copyCode() {
     const code = this.data.family && this.data.family.inviteCode
     if (!code) return
@@ -45,6 +45,34 @@ Page({
 
   goJoin() {
     wx.navigateTo({ url: '/pages/join/join' })
+  },
+
+  enableCloud() {
+    wx.showModal({
+      title: '开通家庭同步',
+      content: '开通后，家人可用邀请码加入同一本账。也可以先本机使用。',
+      confirmText: '开通',
+      cancelText: '取消',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '开通中' })
+        try {
+          await db.enableCloudSync()
+          wx.hideLoading()
+          this.refresh()
+          wx.showToast({ title: '已开通', icon: 'success' })
+        } catch (e) {
+          wx.hideLoading()
+          wx.showModal({
+            title: '暂时开不了',
+            content: e.message || '请稍后重试',
+            showCancel: true,
+            cancelText: '返回',
+            confirmText: '知道了'
+          })
+        }
+      }
+    })
   },
 
   goEditBaby() {

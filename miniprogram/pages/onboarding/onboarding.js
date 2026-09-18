@@ -1,5 +1,6 @@
 const db = require('../../utils/db')
 const format = require('../../utils/format')
+const { leaveLoginFlow } = require('../../utils/guest')
 
 Page({
   data: {
@@ -22,6 +23,14 @@ Page({
 
   goJoin() {
     wx.navigateTo({ url: '/pages/join/join' })
+  },
+
+  skipLogin() {
+    leaveLoginFlow()
+  },
+
+  backHello() {
+    this.setData({ step: 'hello' })
   },
 
   onName(e) {

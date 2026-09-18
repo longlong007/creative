@@ -1,43 +1,52 @@
-<view class="page safe-bottom" wx:if="{{baby}}">
-  <view class="top">
-    <view class="baby" bindtap="goFamily">
-      <view class="avatar {{baby.gender === 'boy' ? 'boy' : 'girl'}}">{{baby.name ? baby.name[0] : '芽'}}</view>
-      <view class="baby-meta">
-        <view class="name-row">
-          <text class="name">{{baby.name}}</text>
-          <text class="age">{{ageText}}</text>
+<view class="page safe-bottom">
+  <block wx:if="{{baby}}">
+    <view class="top">
+      <view class="baby" bindtap="goFamily">
+        <view class="avatar {{baby.gender === 'boy' ? 'boy' : 'girl'}}">{{baby.name ? baby.name[0] : '芽'}}</view>
+        <view class="baby-meta">
+          <view class="name-row">
+            <text class="name">{{baby.name}}</text>
+            <text class="age">{{ageText}}</text>
+          </view>
+          <text class="hint">一家人一起记</text>
         </view>
-        <text class="hint">一家人一起记</text>
+      </view>
+      <view class="insight" bindtap="goInsights">洞察</view>
+    </view>
+
+    <view class="sleep-banner tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" wx:if="{{activeSleep}}" bindtap="toggleSleep">
+      <view>
+        <text class="sleep-k">宝宝睡着了</text>
+        <text class="sleep-v">已经 {{activeSleepText}}</text>
+      </view>
+      <view class="wake-btn">醒来</view>
+    </view>
+
+    <view class="stats card">
+      <view class="stat">
+        <text class="stat-v">{{todayMilk}}</text>
+        <text class="stat-k">今日奶量</text>
+      </view>
+      <view class="stat">
+        <text class="stat-v">{{todaySleep}}</text>
+        <text class="stat-k">今日睡眠</text>
+      </view>
+      <view class="stat">
+        <text class="stat-v">{{todayDiaper}}</text>
+        <text class="stat-k">尿布</text>
       </view>
     </view>
-    <view class="insight" bindtap="goInsights">洞察</view>
-  </view>
 
-  <view class="sleep-banner tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" wx:if="{{activeSleep}}" bindtap="toggleSleep">
-    <view>
-      <text class="sleep-k">宝宝睡着了</text>
-      <text class="sleep-v">已经 {{activeSleepText}}</text>
-    </view>
-    <view class="wake-btn">醒来</view>
-  </view>
+    <view class="last" wx:if="{{lastMilkAgo}}">上次 {{lastMilkTitle}} · {{lastMilkAgo}}</view>
+    <view class="last" wx:else>点下面大按钮，一两下就能记下</view>
+  </block>
 
-  <view class="stats card">
-    <view class="stat">
-      <text class="stat-v">{{todayMilk}}</text>
-      <text class="stat-k">今日奶量</text>
-    </view>
-    <view class="stat">
-      <text class="stat-v">{{todaySleep}}</text>
-      <text class="stat-k">今日睡眠</text>
-    </view>
-    <view class="stat">
-      <text class="stat-v">{{todayDiaper}}</text>
-      <text class="stat-k">尿布</text>
-    </view>
+  <view wx:else class="guest-hero">
+    <view class="title">小芽记</view>
+    <view class="sub">先看看怎么记。建账或加入家庭都可以随时取消。</view>
+    <button class="btn btn-primary" bindtap="goOnboarding">给宝宝建一本</button>
+    <button class="btn btn-ghost" bindtap="goJoin">我有邀请码</button>
   </view>
-
-  <view class="last" wx:if="{{lastMilkAgo}}">上次 {{lastMilkTitle}} · {{lastMilkAgo}}</view>
-  <view class="last" wx:else>点下面大按钮，一两下就能记下</view>
 
   <view class="grid">
     <view class="q milk tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" bindtap="openMilk">
@@ -76,7 +85,7 @@
 
   <view class="more-link tap" hover-class="tap-on" hover-start-time="0" hover-stay-time="80" bindtap="openMore">身高 · 体重 · 体温</view>
 
-  <view class="card recent-card">
+  <view class="card recent-card" wx:if="{{baby}}">
     <view class="section-title">今天记下的</view>
     <view wx:if="{{!recent.length}}" class="empty">今天还没有记录，从喝奶或睡觉开始</view>
     <record-item wx:for="{{recent}}" wx:key="id" record="{{item}}" bind:edit="editRecord" />

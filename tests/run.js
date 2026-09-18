@@ -223,6 +223,37 @@ async function run() {
     assert(threw)
   })
 
+  await test('create family stays local even after init', async () => {
+    await db.init()
+    await db.resetLocal()
+    await db.createFamilyAndBaby({
+      babyName: '小芽',
+      birthday: '2026-01-01',
+      gender: 'girl'
+    })
+    assertEq(db.snapshot().mode, 'local')
+    assert(db.hasBaby())
+  })
+
+  await test('enableCloudSync without cloud stays local', async () => {
+    await db.init()
+    await db.resetLocal()
+    await db.createFamilyAndBaby({
+      babyName: '小芽',
+      birthday: '2026-01-01',
+      gender: 'girl'
+    })
+    let threw = false
+    try {
+      await db.enableCloudSync()
+    } catch (e) {
+      threw = true
+      assert(String(e.message).indexOf('云') >= 0)
+    }
+    assert(threw)
+    assertEq(db.snapshot().mode, 'local')
+  })
+
   await test('resolveRange 7d and 30d', () => {
     const week = insights.resolveRange('week', now)
     const d7 = insights.resolveRange('7d', now)

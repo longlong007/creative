@@ -12,7 +12,10 @@
     >{{item.label}}</view>
   </view>
 
-  <view wx:if="{{!groups.length}}" class="empty">这一类还没有记录</view>
+  <view wx:if="{{!groups.length}}" class="empty">
+    <view>还没有记录，可先浏览页面</view>
+    <view wx:if="{{!baby}}" class="link" bindtap="goOnboarding">给宝宝建一本</view>
+  </view>
 
   <view class="group" wx:for="{{groups}}" wx:key="key">
     <view class="head">

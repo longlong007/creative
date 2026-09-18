@@ -5,6 +5,7 @@ const { showTabBar } = require('../../utils/tab')
 Page({
   data: {
     groups: [],
+    baby: null,
     filter: 'all',
     filters: [
       { key: 'all', label: '全部' },
@@ -19,10 +20,6 @@ Page({
   async onShow() {
     showTabBar(this, 1)
     await getApp().whenReady()
-    if (!db.hasBaby()) {
-      wx.redirectTo({ url: '/pages/onboarding/onboarding' })
-      return
-    }
     this.bindDb()
     await db.syncRecords()
     this.refresh()
@@ -57,7 +54,7 @@ Page({
     else if (f === 'diaper') records = records.filter((r) => r.type === 'diaper')
     else if (f === 'growth') records = records.filter((r) => r.type === 'height' || r.type === 'weight')
     else if (f === 'solid') records = records.filter((r) => r.type === 'solid')
-    this.setData({ groups: present.presentTimeline(records) })
+    this.setData({ baby: snap.baby, groups: present.presentTimeline(records) })
   },
 
   setFilter(e) {
@@ -67,5 +64,9 @@ Page({
 
   editRecord(e) {
     wx.navigateTo({ url: `/pages/record-edit/record-edit?id=${e.detail.id}` })
+  },
+
+  goOnboarding() {
+    wx.navigateTo({ url: '/pages/onboarding/onboarding' })
   }
 })

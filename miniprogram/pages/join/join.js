@@ -1,10 +1,15 @@
 const db = require('../../utils/db')
+const { leaveLoginFlow } = require('../../utils/guest')
 
 Page({
   data: { code: '' },
 
   onCode(e) {
     this.setData({ code: (e.detail.value || '').toUpperCase() })
+  },
+
+  skipJoin() {
+    leaveLoginFlow()
   },
 
   async submit() {
@@ -22,8 +27,12 @@ Page({
       wx.hideLoading()
       wx.showModal({
         title: '还加不进去',
-        content: e.message || '请检查邀请码，或先配置云开发后再跨设备共享。',
-        showCancel: false
+        content: e.message || '请检查邀请码，或先在本机记录。',
+        confirmText: '知道了',
+        cancelText: '返回',
+        success: (res) => {
+          if (res.cancel) this.skipJoin()
+        }
       })
     }
   }

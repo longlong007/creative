@@ -52,13 +52,17 @@ class Database {
       try {
         wx.cloud.init({ env: config.cloudEnv, traceUser: true })
         this.cloudReady = true
-        const hasCloudFamily = await this._loadCloud()
-        if (hasCloudFamily) {
-          this.mode = 'cloud'
-          this.ready = true
-          this._startRecordWatch()
-          this._notify()
-          return this
+        const storedFamilyId =
+          (wx.getStorageSync && wx.getStorageSync('xiaoya_current_family')) || ''
+        if (storedFamilyId) {
+          const hasCloudFamily = await this._loadCloud(storedFamilyId)
+          if (hasCloudFamily) {
+            this.mode = 'cloud'
+            this.ready = true
+            this._startRecordWatch()
+            this._notify()
+            return this
+          }
         }
       } catch (err) {
         console.warn('cloud init failed, fallback to local', err)
@@ -358,24 +362,69 @@ class Database {
       joinedAt: now
     }
 
-    if (this.cloudReady) {
-      await wx.cloud.callFunction({
-        name: 'createFamily',
-        data: { familyName: family.name, inviteCode: code, baby }
-      })
-      const ok = await this._loadCloud()
-      if (!ok) throw new Error('家庭已创建，但同步失败。请重新打开小程序。')
+    this.mode = 'local'
+    this.state.family = family
+    this.state.members = [me]
+    this.state.babies = [baby]
+    this.state.currentBabyId = babyId
+    this.state.records = []
+    this.persist()
+    return this.snapshot()
+  }
+
+  async enableCloudSync() {
+    if (!this.cloudReady || typeof wx === 'undefined' || !wx.cloud) {
+      throw new Error('还没开通云开发')
+    }
+    if (this.mode === 'cloud') return this.snapshot()
+    const baby = this.currentBaby()
+    if (!baby || !this.state.family) throw new Error('请先给宝宝建一本')
+
+    const localRecords = this.state.records.slice()
+    const family = this.state.family
+    const existed = await this._loadCloud()
+    if (existed) {
       this.mode = 'cloud'
       this._startRecordWatch()
       this.persist()
       return this.snapshot()
     }
 
-    this.state.family = family
-    this.state.members = [me]
-    this.state.babies = [baby]
-    this.state.currentBabyId = babyId
-    this.state.records = []
+    await wx.cloud.callFunction({
+      name: 'createFamily',
+      data: {
+        familyName: family.name,
+        inviteCode: family.inviteCode,
+        baby: {
+          name: baby.name,
+          birthday: baby.birthday,
+          gender: baby.gender
+        }
+      }
+    })
+    const ok = await this._loadCloud()
+    if (!ok) throw new Error('同步失败，请稍后重试')
+    this.mode = 'cloud'
+
+    if (localRecords.length && this.state.records.length === 0) {
+      const oldestFirst = localRecords.slice().reverse()
+      for (let i = 0; i < oldestFirst.length; i++) {
+        const rec = oldestFirst[i]
+        await this.addRecord({
+          type: rec.type,
+          subtype: rec.subtype,
+          startAt: rec.startAt,
+          endAt: rec.endAt,
+          durationMin: rec.durationMin,
+          amount: rec.amount,
+          unit: rec.unit,
+          note: rec.note,
+          source: rec.source
+        })
+      }
+    }
+
+    this._startRecordWatch()
     this.persist()
     return this.snapshot()
   }
@@ -584,6 +633,7 @@ class Database {
 
   async resetLocal() {
     this._stopRecordWatch()
+    this.mode = 'local'
     this.state = emptyState()
     this.persist()
   }
