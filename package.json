@@ -1,0 +1,9 @@
+{
+  "name": "xiaoya-ji",
+  "version": "1.0.0",
+  "private": true,
+  "description": "小芽记 — 家庭共享的宝宝成长记录微信小程序",
+  "scripts": {
+    "test": "node tests/run.js"
+  }
+}

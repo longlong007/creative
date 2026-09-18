@@ -1,0 +1,15 @@
+<view class="page">
+  <view class="label">名字</view>
+  <input class="input" value="{{name}}" bindinput="onName" maxlength="12" />
+  <view class="label">性别</view>
+  <view class="chip-row">
+    <view class="chip {{gender === 'girl' ? 'on' : ''}}" data-g="girl" bindtap="onGender">女孩</view>
+    <view class="chip {{gender === 'boy' ? 'on' : ''}}" data-g="boy" bindtap="onGender">男孩</view>
+    <view class="chip {{gender === 'unknown' ? 'on' : ''}}" data-g="unknown" bindtap="onGender">先不填</view>
+  </view>
+  <view class="label">生日</view>
+  <picker mode="date" value="{{birthday}}" bindchange="onBirth">
+    <view class="input picker">{{birthday}}</view>
+  </picker>
+  <button class="btn btn-primary" bindtap="save">保存</button>
+</view>

@@ -1,0 +1,60 @@
+<view class="page">
+  <view class="lead">数据洞察</view>
+  <view class="muted range">{{rangeText}}</view>
+
+  <view class="metrics">
+    <view class="card m" wx:for="{{metrics}}" wx:key="key">
+      <text class="mv">{{item.value}}</text>
+      <text class="mk">{{item.label}}</text>
+    </view>
+  </view>
+
+  <view class="card block ai-card">
+    <view class="ai-head">
+      <view class="sheet-title">DeepSeek 分析</view>
+      <view class="think {{thinking ? 'on' : ''}}" bindtap="toggleThinking">{{thinking ? '深度思考开' : '深度思考'}}</view>
+    </view>
+    <view class="muted ai-desc">把这段时间的奶量、睡眠、尿布和生长交给 DeepSeek，看规律和可能漏记。不是诊断。</view>
+    <view class="chip-row">
+      <view
+        wx:for="{{aiRanges}}"
+        wx:key="key"
+        class="chip {{aiRange === item.key ? 'on' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="setRange"
+      >{{item.label}}</view>
+    </view>
+    <button class="btn btn-primary ai-btn" loading="{{analyzing}}" disabled="{{analyzing}}" bindtap="runAnalyze">
+      {{analyzing ? '正在分析' : '用 DeepSeek 分析'}}
+    </button>
+    <view class="ai-error" wx:if="{{aiError}}">{{aiError}}</view>
+    <view class="muted tiny" wx:if="{{!canAnalyze}}">还没配置密钥时，可先复制下方提示词，粘到 DeepSeek 网页使用。</view>
+
+    <view class="ai-result" wx:if="{{aiParagraphs.length}}">
+      <view class="ai-meta">{{aiMeta}}</view>
+      <view class="p" user-select wx:for="{{aiParagraphs}}" wx:key="*this">{{item}}</view>
+      <view class="link" bindtap="copyResult">复制这篇分析</view>
+    </view>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">本周速览</view>
+    <view class="p" wx:for="{{paragraphs}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block" wx:if="{{highlights.length}}">
+    <view class="section-title">亮点</view>
+    <view class="li" wx:for="{{highlights}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block" wx:if="{{suggestions.length}}">
+    <view class="section-title">可以试着做</view>
+    <view class="li" wx:for="{{suggestions}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">备用：复制给别的 AI</view>
+    <view class="muted">没有密钥，或想换 Kimi / 微信里的 AI 时，把整理好的记录贴过去即可。</view>
+    <button class="btn btn-ghost alt-btn" bindtap="copyPrompt">复制分析提示词</button>
+  </view>
+</view>
