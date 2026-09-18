@@ -62,7 +62,12 @@
   margin-top: 12rpx;
 }
 
-.picker {
-  display: flex;
-  align-items: center;
+.form .label {
+  margin-top: 0;
+  margin-bottom: 8rpx;
+}
+
+.form .title {
+  font-size: 44rpx;
+  margin-top: 8rpx;
 }

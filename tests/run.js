@@ -154,6 +154,7 @@ async function run() {
     await db.init()
     await db.resetLocal()
     await db.createFamilyAndBaby({
+      nickName: '妈妈',
       babyName: '小芽',
       birthday: '2026-01-01',
       gender: 'girl'
@@ -187,6 +188,7 @@ async function run() {
     await db.init()
     await db.resetLocal()
     await db.createFamilyAndBaby({
+      nickName: '妈妈',
       babyName: '小芽',
       birthday: '2026-01-01',
       gender: 'girl'
@@ -227,6 +229,7 @@ async function run() {
     await db.init()
     await db.resetLocal()
     await db.createFamilyAndBaby({
+      nickName: '妈妈',
       babyName: '小芽',
       birthday: '2026-01-01',
       gender: 'girl'
@@ -239,6 +242,7 @@ async function run() {
     await db.init()
     await db.resetLocal()
     await db.createFamilyAndBaby({
+      nickName: '妈妈',
       babyName: '小芽',
       birthday: '2026-01-01',
       gender: 'girl'
@@ -381,6 +385,7 @@ async function run() {
     await db.init()
     await db.resetLocal()
     await db.createFamilyAndBaby({
+      nickName: '妈妈',
       babyName: '小芽',
       birthday: '2026-01-01',
       gender: 'girl'
@@ -391,6 +396,84 @@ async function run() {
     assertEq(db.snapshot().family, null)
     assertEq(db.snapshot().members.length, 0)
     assertEq(db.snapshot().mode, 'local')
+    assertEq(db.snapshot().user.nickName, '匿名用户')
+  })
+
+  await test('guest starts as anonymous user', async () => {
+    await db.init()
+    await db.resetLocal()
+    assertEq(db.snapshot().user.nickName, '匿名用户')
+  })
+
+  await test('create family requires nickName', async () => {
+    await db.init()
+    await db.resetLocal()
+    let threw = false
+    try {
+      await db.createFamilyAndBaby({
+        babyName: '小芽',
+        birthday: '2026-01-01',
+        gender: 'girl'
+      })
+    } catch (e) {
+      threw = true
+      assert(String(e.message).indexOf('昵称') >= 0)
+    }
+    assert(threw)
+    assert(!db.hasBaby())
+  })
+
+  await test('create family rejects anonymous nickName', async () => {
+    await db.init()
+    await db.resetLocal()
+    let threw = false
+    try {
+      await db.createFamilyAndBaby({
+        nickName: '匿名用户',
+        babyName: '小芽',
+        birthday: '2026-01-01',
+        gender: 'girl'
+      })
+    } catch (e) {
+      threw = true
+    }
+    assert(threw)
+  })
+
+  await test('nickName flows to member and new records', async () => {
+    await db.init()
+    await db.resetLocal()
+    await db.createFamilyAndBaby({
+      nickName: '妈妈',
+      babyName: '小芽',
+      birthday: '2026-01-01',
+      gender: 'girl'
+    })
+    const snap = db.snapshot()
+    assertEq(snap.user.nickName, '妈妈')
+    assertEq(snap.members[0].nickName, '妈妈')
+    const rec = await db.addRecord({
+      type: 'milk',
+      subtype: 'formula',
+      amount: 120,
+      unit: 'ml',
+      startAt: Date.now(),
+      source: 'quick'
+    })
+    assertEq(rec.createdByName, '妈妈')
+
+    await db.updateNickName('爸爸')
+    const after = db.snapshot()
+    assertEq(after.user.nickName, '爸爸')
+    assertEq(after.members[0].nickName, '爸爸')
+    assertEq(db.getRecord(rec.id).createdByName, '妈妈')
+
+    const rec2 = await db.addRecord({
+      type: 'diaper',
+      subtype: 'pee',
+      startAt: Date.now()
+    })
+    assertEq(rec2.createdByName, '爸爸')
   })
 
   console.log(`\n${passed} passed, ${failed} failed`)

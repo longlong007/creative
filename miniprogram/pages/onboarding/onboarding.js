@@ -5,6 +5,7 @@ const { leaveLoginFlow } = require('../../utils/guest')
 Page({
   data: {
     step: 'hello',
+    nickName: '',
     babyName: '',
     gender: 'girl',
     birthday: format.formatYmd(Date.now() - 90 * 86400000)
@@ -33,6 +34,10 @@ Page({
     this.setData({ step: 'hello' })
   },
 
+  onNick(e) {
+    this.setData({ nickName: e.detail.value })
+  },
+
   onName(e) {
     this.setData({ babyName: e.detail.value })
   },
@@ -46,6 +51,15 @@ Page({
   },
 
   async submit() {
+    const nickName = (this.data.nickName || '').trim()
+    if (!nickName) {
+      wx.showToast({ title: '先写你的昵称', icon: 'none' })
+      return
+    }
+    if (nickName === '匿名用户') {
+      wx.showToast({ title: '请换一个昵称', icon: 'none' })
+      return
+    }
     const name = (this.data.babyName || '').trim()
     if (!name) {
       wx.showToast({ title: '先写宝宝的名字', icon: 'none' })
@@ -58,6 +72,7 @@ Page({
     wx.showLoading({ title: '创建中' })
     try {
       await db.createFamilyAndBaby({
+        nickName,
         babyName: name,
         birthday: this.data.birthday,
         gender: this.data.gender

@@ -28,7 +28,7 @@ exports.main = async (event) => {
     data: {
       _openid: OPENID,
       familyId: fam._id,
-      nickName: '我',
+      nickName: String(event.nickName || '').trim() || '我',
       role: '创建者',
       joinedAt: Date.now()
     }

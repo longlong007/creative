@@ -3,11 +3,13 @@ const { uid, inviteCode } = require('./id')
 const { SOLID_FOODS, mergeSolidFoods } = require('./constants')
 
 const STORAGE_KEY = 'xiaoya_db_v1'
+const ANON_NICK = '匿名用户'
+const NICK_MAX = 12
 
 function emptyState() {
   return {
     version: 1,
-    user: { id: 'local_me', nickName: '我', avatarUrl: '', role: '家长' },
+    user: { id: 'local_me', nickName: ANON_NICK, avatarUrl: '', role: '家长' },
     family: null,
     members: [],
     babies: [],
@@ -15,6 +17,14 @@ function emptyState() {
     records: [],
     solidFoods: []
   }
+}
+
+function normalizeNickName(raw) {
+  const name = String(raw || '').trim()
+  if (!name) throw new Error('先写你的昵称')
+  if (name.length > NICK_MAX) throw new Error(`昵称最多 ${NICK_MAX} 个字`)
+  if (name === ANON_NICK) throw new Error('请换一个昵称')
+  return name
 }
 
 function clone(obj) {
@@ -173,7 +183,7 @@ class Database {
     const openid = (login.result && login.result.openid) || ''
     this.state.user = {
       id: openid,
-      nickName: '我',
+      nickName: ANON_NICK,
       avatarUrl: '',
       role: '家长'
     }
@@ -191,6 +201,8 @@ class Database {
       member = memberRes.data.slice().sort((a, b) => (b.joinedAt || 0) - (a.joinedAt || 0))[0]
     }
     const familyId = member.familyId
+    this.state.user.nickName = member.nickName || ANON_NICK
+    this.state.user.role = member.role || '家长'
     if (typeof wx !== 'undefined' && wx.setStorageSync) {
       wx.setStorageSync('xiaoya_current_family', familyId)
     }
@@ -334,10 +346,13 @@ class Database {
   }
 
   async createFamilyAndBaby(input) {
+    const nickName = normalizeNickName(input && input.nickName)
     const now = Date.now()
     const familyId = uid('fam')
     const babyId = uid('baby')
     const code = inviteCode(config.inviteCodeLength)
+    this.state.user.nickName = nickName
+    this.state.user.role = '创建者'
     const family = {
       id: familyId,
       name: input.familyName || `${input.babyName}的家`,
@@ -357,7 +372,7 @@ class Database {
     const me = {
       id: this.state.user.id,
       familyId,
-      nickName: this.state.user.nickName,
+      nickName,
       role: '创建者',
       joinedAt: now
     }
@@ -395,6 +410,7 @@ class Database {
       data: {
         familyName: family.name,
         inviteCode: family.inviteCode,
+        nickName: this.state.user.nickName,
         baby: {
           name: baby.name,
           birthday: baby.birthday,
@@ -429,12 +445,16 @@ class Database {
     return this.snapshot()
   }
 
-  async joinFamily(code) {
+  async joinFamily(code, nickName) {
     const normalized = String(code || '').trim().toUpperCase()
     if (!normalized) throw new Error('请输入邀请码')
+    const name = normalizeNickName(nickName)
 
     if (this.cloudReady) {
-      const res = await wx.cloud.callFunction({ name: 'joinFamily', data: { inviteCode: normalized } })
+      const res = await wx.cloud.callFunction({
+        name: 'joinFamily',
+        data: { inviteCode: normalized, nickName: name }
+      })
       const familyId = res.result && res.result.familyId
       if (typeof wx !== 'undefined' && wx.removeStorageSync) {
         wx.removeStorageSync('xiaoya_current_baby')
@@ -453,6 +473,27 @@ class Database {
     if (!this.state.family || this.state.family.inviteCode !== normalized) {
       throw new Error('本地模式无法跨设备加入。请在 config.js 填写云开发环境 ID，或让家人在同一部手机上记录。')
     }
+    this.state.user.nickName = name
+    const me = this.state.members.find((m) => m.id === this.state.user.id)
+    if (me) me.nickName = name
+    this.persist()
+    return this.snapshot()
+  }
+
+  async updateNickName(raw) {
+    const name = normalizeNickName(raw)
+    this.state.user.nickName = name
+    const me = this.state.members.find(
+      (m) => m.id === this.state.user.id || m._openid === this.state.user.id
+    )
+    if (me) {
+      me.nickName = name
+      if (this.mode === 'cloud' && me.id) {
+        const cloudDb = wx.cloud.database()
+        await cloudDb.collection('xiaoya_members').doc(me.id).update({ data: { nickName: name } })
+      }
+    }
+    this.persist()
     return this.snapshot()
   }
 

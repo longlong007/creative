@@ -21,11 +21,12 @@ exports.main = async (event) => {
   }
 
   if (!inTarget.length) {
+    const nickName = String(event.nickName || '').trim() || '家人'
     await db.collection('xiaoya_members').add({
       data: {
         _openid: OPENID,
         familyId: family._id,
-        nickName: '家人',
+        nickName,
         role: '家长',
         joinedAt: Date.now()
       }

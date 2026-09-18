@@ -2,7 +2,11 @@ const db = require('../../utils/db')
 const { leaveLoginFlow } = require('../../utils/guest')
 
 Page({
-  data: { code: '' },
+  data: { code: '', nickName: '' },
+
+  onNick(e) {
+    this.setData({ nickName: e.detail.value })
+  },
 
   onCode(e) {
     this.setData({ code: (e.detail.value || '').toUpperCase() })
@@ -13,13 +17,22 @@ Page({
   },
 
   async submit() {
+    const nickName = (this.data.nickName || '').trim()
+    if (!nickName) {
+      wx.showToast({ title: '先写你的昵称', icon: 'none' })
+      return
+    }
+    if (nickName === '匿名用户') {
+      wx.showToast({ title: '请换一个昵称', icon: 'none' })
+      return
+    }
     if (!this.data.code) {
       wx.showToast({ title: '填 6 位邀请码', icon: 'none' })
       return
     }
     wx.showLoading({ title: '加入中' })
     try {
-      await db.joinFamily(this.data.code)
+      await db.joinFamily(this.data.code, nickName)
       wx.hideLoading()
       wx.showToast({ title: '已加入这本账', icon: 'success' })
       wx.switchTab({ url: '/pages/index/index' })
