@@ -27,6 +27,7 @@
       <text>{{item.nickName}}</text>
       <text class="muted">{{item.role}}</text>
     </view>
+    <view class="danger-link" bindtap="leaveAccount">退出家庭并删除账号</view>
   </view>
 
   <view class="card block">

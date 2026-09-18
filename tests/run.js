@@ -321,6 +321,78 @@ async function run() {
     assert(msg.indexOf('120ml') !== -1)
   })
 
+  const leavePolicy = require('../cloudfunctions/leaveFamily/policy')
+
+  await test('leave policy: ordinary member leaves', () => {
+    const me = { _id: 'm2', _openid: 'o2', role: '家长', joinedAt: 200 }
+    const members = [
+      { _id: 'm1', _openid: 'o1', role: '创建者', joinedAt: 100 },
+      me
+    ]
+    const result = leavePolicy.decideLeave({
+      openid: 'o2',
+      members,
+      family: { createdBy: 'o1' }
+    })
+    assertEq(result.action, 'leave')
+    assertEq(result.successor, null)
+  })
+
+  await test('leave policy: creator transfers to earliest other', () => {
+    const me = { _id: 'm1', _openid: 'o1', role: '创建者', joinedAt: 100 }
+    const early = { _id: 'm2', _openid: 'o2', role: '家长', joinedAt: 150 }
+    const late = { _id: 'm3', _openid: 'o3', role: '家长', joinedAt: 300 }
+    const result = leavePolicy.decideLeave({
+      openid: 'o1',
+      members: [me, late, early],
+      family: { createdBy: 'o1' }
+    })
+    assertEq(result.action, 'transfer')
+    assertEq(result.successor._id, 'm2')
+    assert(result.successor._openid !== 'o1')
+  })
+
+  await test('leave policy: last member dissolves', () => {
+    const me = { _id: 'm1', _openid: 'o1', role: '创建者', joinedAt: 100 }
+    const result = leavePolicy.decideLeave({
+      openid: 'o1',
+      members: [me],
+      family: { createdBy: 'o1' }
+    })
+    assertEq(result.action, 'dissolve')
+  })
+
+  await test('leave policy: not a member throws', () => {
+    let threw = false
+    try {
+      leavePolicy.decideLeave({
+        openid: 'ghost',
+        members: [{ _id: 'm1', _openid: 'o1', role: '创建者', joinedAt: 100 }],
+        family: { createdBy: 'o1' }
+      })
+    } catch (e) {
+      threw = true
+      assert(String(e.message).indexOf('不在这个家里') >= 0)
+    }
+    assert(threw)
+  })
+
+  await test('leaveAccount clears local family', async () => {
+    await db.init()
+    await db.resetLocal()
+    await db.createFamilyAndBaby({
+      babyName: '小芽',
+      birthday: '2026-01-01',
+      gender: 'girl'
+    })
+    assert(db.hasBaby())
+    await db.leaveAccount()
+    assert(!db.hasBaby())
+    assertEq(db.snapshot().family, null)
+    assertEq(db.snapshot().members.length, 0)
+    assertEq(db.snapshot().mode, 'local')
+  })
+
   console.log(`\n${passed} passed, ${failed} failed`)
   if (failed) process.exit(1)
 }

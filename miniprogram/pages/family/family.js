@@ -100,5 +100,50 @@ Page({
 
   goInsights() {
     wx.navigateTo({ url: '/pages/insights/insights' })
+  },
+
+  leaveConfirmContent() {
+    const members = this.data.members || []
+    if (members.length <= 1) {
+      return '你是最后一个人。退出后这本账、宝宝和记录都会删掉，无法恢复。'
+    }
+    const snap = db.snapshot()
+    const userId = snap.user && snap.user.id
+    const me = members.find((m) => m.id === userId || m._openid === userId)
+    const isCreator =
+      (me && me.role === '创建者') ||
+      (snap.family && snap.family.createdBy && snap.family.createdBy === userId)
+    if (isCreator) {
+      return '退出后，创建者会交给最早加入的家人。账本和记录会留下，你再也进不来。'
+    }
+    return '退出后你不能再看这本账。别人还在，记录会留下。'
+  },
+
+  leaveAccount() {
+    wx.showModal({
+      title: '退出家庭并删除账号',
+      content: this.leaveConfirmContent(),
+      confirmText: '退出',
+      confirmColor: '#B54A3A',
+      cancelText: '取消',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '退出中' })
+        try {
+          await db.leaveAccount()
+          wx.hideLoading()
+          this.refresh()
+          wx.showToast({ title: '已退出', icon: 'success' })
+        } catch (e) {
+          wx.hideLoading()
+          wx.showModal({
+            title: '暂时退不出',
+            content: e.message || '请稍后重试',
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        }
+      }
+    })
   }
 })

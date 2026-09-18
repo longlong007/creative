@@ -631,10 +631,46 @@ class Database {
     this.persist()
   }
 
+  _clearFamilyKeys() {
+    if (typeof wx === 'undefined') return
+    if (wx.removeStorageSync) {
+      wx.removeStorageSync('xiaoya_current_family')
+      wx.removeStorageSync('xiaoya_current_baby')
+    }
+  }
+
+  async leaveAccount() {
+    if (this.mode === 'cloud') {
+      try {
+        const familyId = (this.state.family && this.state.family.id) || ''
+        const res = await wx.cloud.callFunction({
+          name: 'leaveFamily',
+          data: { familyId }
+        })
+        if (res.result && res.result.ok === false) {
+          throw new Error(res.result.error || '退出失败')
+        }
+      } catch (err) {
+        const msg = String((err && (err.errMsg || err.message)) || '')
+        if (/FUNCTION_NOT_FOUND|cannot find/i.test(msg)) {
+          throw new Error('请先上传云函数 leaveFamily')
+        }
+        throw err
+      }
+    }
+    this._stopRecordWatch()
+    this.mode = 'local'
+    this.state = emptyState()
+    this._clearFamilyKeys()
+    this.persist()
+    return this.snapshot()
+  }
+
   async resetLocal() {
     this._stopRecordWatch()
     this.mode = 'local'
     this.state = emptyState()
+    this._clearFamilyKeys()
     this.persist()
   }
 }
