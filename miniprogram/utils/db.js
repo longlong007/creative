@@ -26,6 +26,13 @@ function watchSnapshotRecords(snapshot) {
   return snapshot.docs
 }
 
+function prependRecord(records, rec) {
+  if (!rec) return records
+  if (rec.id != null && records.some((r) => r.id === rec.id)) return records
+  records.unshift(rec)
+  return records
+}
+
 class Database {
   constructor() {
     this.mode = 'local'
@@ -486,7 +493,7 @@ class Database {
       rec.id = res._id
     }
 
-    this.state.records.unshift(rec)
+    prependRecord(this.state.records, rec)
     this.persist()
     return rec
   }
@@ -584,4 +591,5 @@ class Database {
 
 const db = new Database()
 db.watchSnapshotRecords = watchSnapshotRecords
+db.prependRecord = prependRecord
 module.exports = db
