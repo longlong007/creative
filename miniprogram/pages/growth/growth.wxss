@@ -43,7 +43,7 @@
 
 .chart {
   width: 100%;
-  height: 360rpx;
+  height: 420rpx;
 }
 
 .add {

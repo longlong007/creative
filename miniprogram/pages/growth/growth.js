@@ -3,6 +3,45 @@ const stats = require('../../utils/stats')
 const format = require('../../utils/format')
 const { hideTabBar, showTabBar } = require('../../utils/tab')
 
+function niceStep(raw) {
+  if (!(raw > 0)) return 1
+  const exp = Math.floor(Math.log10(raw))
+  const f = raw / Math.pow(10, exp)
+  const nf = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10
+  return nf * Math.pow(10, exp)
+}
+
+function niceAxis(min, max, count) {
+  const span = max - min || 1
+  const step = niceStep(span / Math.max(count - 1, 1))
+  const niceMin = Math.floor(min / step) * step
+  const niceMax = Math.ceil(max / step) * step
+  const n = Math.round((niceMax - niceMin) / step)
+  const ticks = []
+  for (let i = 0; i <= n; i++) ticks.push(Number((niceMin + i * step).toFixed(10)))
+  return { min: niceMin, max: niceMax, ticks, step }
+}
+
+function formatTick(v, step) {
+  if (step >= 1) return String(Math.round(v))
+  if (step >= 0.1) return v.toFixed(1)
+  return v.toFixed(2)
+}
+
+function axisDate(ts) {
+  const d = new Date(ts)
+  return `${d.getMonth() + 1}/${d.getDate()}`
+}
+
+function pickIndexes(n, maxLabels) {
+  if (n <= maxLabels) return Array.from({ length: n }, (_, i) => i)
+  const out = []
+  for (let k = 0; k < maxLabels; k++) {
+    out.push(Math.round((k * (n - 1)) / (maxLabels - 1)))
+  }
+  return out.filter((v, i, arr) => !i || v !== arr[i - 1])
+}
+
 Page({
   data: {
     tab: 'weight',
@@ -109,23 +148,29 @@ Page({
   },
 
   async save() {
+    if (this._saving) return
     const v = Number(this.data.formValue)
     if (!v) {
       wx.showToast({ title: '填一个数字', icon: 'none' })
       return
     }
+    this._saving = true
     const type = this.data.formType
-    await db.addRecord({
-      type,
-      amount: v,
-      unit: type === 'height' ? 'cm' : 'kg',
-      startAt: format.toTs(this.data.formDate, this.data.formTime),
-      source: 'manual'
-    })
-    showTabBar(this, 2)
-    this.setData({ sheet: false })
-    wx.showToast({ title: '记下了', icon: 'success' })
-    this.refresh()
+    try {
+      await db.addRecord({
+        type,
+        amount: v,
+        unit: type === 'height' ? 'cm' : 'kg',
+        startAt: format.toTs(this.data.formDate, this.data.formTime),
+        source: 'manual'
+      })
+      showTabBar(this, 2)
+      this.setData({ sheet: false })
+      wx.showToast({ title: '记下了', icon: 'success' })
+      this.refresh()
+    } finally {
+      this._saving = false
+    }
   },
 
   onRowTouchStart(e) {
@@ -171,7 +216,7 @@ Page({
           ctx.fillText('量两次就能看到曲线', 16, h / 2)
           return
         }
-        const pad = { l: 36, r: 16, t: 16, b: 24 }
+        const pad = { l: 44, r: 16, t: 28, b: 38 }
         const values = series.map((p) => p.v)
         let min = Math.min.apply(null, values)
         let max = Math.max.apply(null, values)
@@ -179,18 +224,51 @@ Page({
           min -= 1
           max += 1
         }
+        const axis = niceAxis(min, max, 4)
+        min = axis.min
+        max = axis.max
         const innerW = w - pad.l - pad.r
         const innerH = h - pad.t - pad.b
         const xAt = (i) => pad.l + (series.length === 1 ? innerW / 2 : (i * innerW) / (series.length - 1))
         const yAt = (v) => pad.t + ((max - v) / (max - min)) * innerH
+        const yUnit = this.data.tab === 'weight' ? 'kg' : 'cm'
+
+        ctx.strokeStyle = '#F0E8DE'
+        ctx.lineWidth = 1
+        axis.ticks.forEach((tick) => {
+          const y = yAt(tick)
+          ctx.beginPath()
+          ctx.moveTo(pad.l, y)
+          ctx.lineTo(w - pad.r, y)
+          ctx.stroke()
+        })
 
         ctx.strokeStyle = '#EDE4D8'
-        ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(pad.l, pad.t)
         ctx.lineTo(pad.l, h - pad.b)
         ctx.lineTo(w - pad.r, h - pad.b)
         ctx.stroke()
+
+        ctx.fillStyle = '#8A8178'
+        ctx.font = '10px sans-serif'
+        ctx.textAlign = 'right'
+        ctx.textBaseline = 'bottom'
+        ctx.fillText(yUnit, pad.l - 6, pad.t - 6)
+        ctx.textBaseline = 'middle'
+        axis.ticks.forEach((tick) => {
+          ctx.fillText(formatTick(tick, axis.step), pad.l - 6, yAt(tick))
+        })
+
+        const xLabels = pickIndexes(series.length, 4)
+        ctx.textBaseline = 'top'
+        xLabels.forEach((i, idx) => {
+          const x = xAt(i)
+          ctx.textAlign = idx === 0 ? 'left' : idx === xLabels.length - 1 ? 'right' : 'center'
+          ctx.fillText(axisDate(series[i].t), x, h - pad.b + 6)
+        })
+        ctx.textAlign = 'right'
+        ctx.fillText('日期', w - pad.r, h - 12)
 
         ctx.strokeStyle = this.data.tab === 'weight' ? '#E07A5F' : '#6A9E8A'
         ctx.lineWidth = 2.5
