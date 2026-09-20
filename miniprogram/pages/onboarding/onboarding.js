@@ -4,7 +4,6 @@ const { leaveLoginFlow } = require('../../utils/guest')
 
 Page({
   data: {
-    step: 'hello',
     nickName: '',
     babyName: '',
     gender: 'girl',
@@ -18,20 +17,8 @@ Page({
     }
   },
 
-  goCreate() {
-    this.setData({ step: 'create' })
-  },
-
-  goJoin() {
-    wx.navigateTo({ url: '/pages/join/join' })
-  },
-
-  skipLogin() {
+  goBack() {
     leaveLoginFlow()
-  },
-
-  backHello() {
-    this.setData({ step: 'hello' })
   },
 
   onNick(e) {

@@ -1,20 +1,6 @@
 <view class="page">
-  <view wx:if="{{step === 'hello'}}" class="hero">
-    <view class="mark">芽</view>
-    <view class="title">小芽记</view>
-    <view class="sub">记宝宝的吃睡和生长</view>
-    <view class="points">
-      <text>喝奶、睡觉、尿布</text>
-      <text>全家共用一本账</text>
-      <text>AI 看趋势</text>
-    </view>
-    <button class="btn btn-primary" bindtap="goCreate">给宝宝建一本</button>
-    <button class="btn btn-ghost" bindtap="goJoin">我有邀请码</button>
-    <button class="btn btn-ghost skip" bindtap="skipLogin">暂不登录</button>
-  </view>
-
-  <view wx:else class="form">
-    <view class="back" bindtap="backHello">返回</view>
+  <view class="form">
+    <view class="back" bindtap="goBack">返回</view>
     <view class="label">你叫什么？</view>
     <input class="input" placeholder="爸爸 / 妈妈 / 奶奶" value="{{nickName}}" bindinput="onNick" maxlength="12" />
     <view class="title">宝宝叫什么？</view>
