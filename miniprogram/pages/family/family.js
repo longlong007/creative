@@ -120,7 +120,7 @@ Page({
   enableCloud() {
     wx.showModal({
       title: '开通家庭同步',
-      content: '开通后，家人可用邀请码加入同一本账。也可以先本机使用。',
+      content: '家人可用邀请码加入同一本账。',
       confirmText: '开通',
       cancelText: '取消',
       success: async (res) => {

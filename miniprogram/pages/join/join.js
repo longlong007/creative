@@ -40,7 +40,7 @@ Page({
       wx.hideLoading()
       wx.showModal({
         title: '还加不进去',
-        content: e.message || '请检查邀请码，或先在本机记录。',
+        content: e.message || '请检查邀请码',
         confirmText: '知道了',
         cancelText: '返回',
         success: (res) => {

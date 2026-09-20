@@ -125,7 +125,7 @@ Page({
     const snap = db.snapshot()
     const payload = insights.buildAiPayload(snap.baby, snap.records, this.data.aiRange)
     if (!payload.summary.recordCount) {
-      this.setData({ aiError: '这一段还没什么记录，先记几条再分析' })
+      this.setData({ aiError: '这段还没有记录' })
       return
     }
     this.setData({ analyzing: true, aiError: '' })
@@ -159,7 +159,7 @@ Page({
     if (!prompt) return
     wx.setClipboardData({
       data: prompt,
-      success: () => wx.showToast({ title: '已复制给 AI 的说明', icon: 'success' })
+      success: () => wx.showToast({ title: '已复制', icon: 'success' })
     })
   },
 
@@ -168,7 +168,7 @@ Page({
     if (!text) return
     wx.setClipboardData({
       data: text,
-      success: () => wx.showToast({ title: '已复制分析结果', icon: 'success' })
+      success: () => wx.showToast({ title: '已复制', icon: 'success' })
     })
   }
 })

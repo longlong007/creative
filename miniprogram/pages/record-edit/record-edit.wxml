@@ -36,7 +36,7 @@
     </view>
     <view class="field">
       <text>备注</text>
-      <input value="{{note}}" bindinput="onNote" placeholder="可空" />
+      <input value="{{note}}" bindinput="onNote" />
     </view>
   </view>
 

@@ -17,7 +17,7 @@ function canAnalyze() {
 }
 
 function setupHint() {
-  return '还没接上 DeepSeek。推荐：开通云开发，部署云函数 aiAnalyze，并设置环境变量 DEEPSEEK_API_KEY。本机调试也可在 config.js 填写 deepseekApiKey（不要提交到仓库）。'
+  return '开通云开发并部署 aiAnalyze，或在 config.js 填写密钥。'
 }
 
 function requestDeepseek(body, apiKey) {
@@ -76,7 +76,7 @@ function buildBody(payload, model, thinking) {
 
 async function analyze({ payload, model, thinking }) {
   if (!payload || !payload.summary || payload.summary.recordCount < 1) {
-    throw new Error('这一段还没什么记录，先记几条再分析')
+    throw new Error('这段还没有记录')
   }
 
   if (db.cloudReady && typeof wx !== 'undefined' && wx.cloud) {

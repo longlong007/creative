@@ -64,7 +64,7 @@ const MORE_ACTIONS = [
   { key: 'height', label: '身高', desc: 'cm', type: 'height' },
   { key: 'weight', label: '体重', desc: 'kg', type: 'weight' },
   { key: 'temperature', label: '体温', desc: '°C', type: 'temperature' },
-  { key: 'note', label: '备注', desc: '一句话', type: 'note' }
+  { key: 'note', label: '备注', desc: '', type: 'note' }
 ]
 
 const FORM_TITLES = {

@@ -13,7 +13,7 @@
   </view>
 
   <view wx:if="{{!groups.length}}" class="empty">
-    <view>还没有记录，可先浏览页面</view>
+    <view>还没有记录</view>
     <view wx:if="{{!baby}}" class="link" bindtap="goOnboarding">给宝宝建一本</view>
   </view>
 

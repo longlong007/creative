@@ -2,17 +2,6 @@
   padding: 80rpx 48rpx;
 }
 
-.title {
-  font-size: 44rpx;
-  font-weight: 750;
-  margin-bottom: 16rpx;
-}
-
-.sub {
-  color: #8A8178;
-  margin-bottom: 48rpx;
-}
-
 .label {
   color: #8A8178;
   margin-bottom: 12rpx;

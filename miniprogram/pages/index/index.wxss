@@ -10,13 +10,6 @@
 .guest-hero .title {
   font-size: 48rpx;
   font-weight: 800;
-  margin-bottom: 12rpx;
-}
-
-.guest-hero .sub {
-  font-size: 28rpx;
-  color: #8A8178;
-  line-height: 1.6;
   margin-bottom: 28rpx;
 }
 
@@ -62,11 +55,6 @@
 
 .age {
   font-size: 24rpx;
-  color: #8A8178;
-}
-
-.hint {
-  font-size: 22rpx;
   color: #8A8178;
 }
 
@@ -215,7 +203,7 @@
   padding: 28rpx 20rpx;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .diaper-half.pee {
@@ -315,6 +303,10 @@
   font-weight: 600;
   display: flex;
   align-items: center;
+}
+
+.sheet .sheet-title {
+  margin-bottom: 24rpx;
 }
 
 .save {

@@ -2,13 +2,8 @@
   padding: 24rpx 28rpx 60rpx;
 }
 
-.lead {
-  font-size: 48rpx;
-  font-weight: 800;
-}
-
 .range {
-  margin: 8rpx 0 24rpx;
+  margin: 0 0 24rpx;
 }
 
 .metrics {

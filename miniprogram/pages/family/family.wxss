@@ -92,11 +92,6 @@
   font-size: 26rpx;
 }
 
-.guest-lead {
-  margin: 8rpx 8rpx 40rpx;
-  line-height: 1.6;
-}
-
 .guest-block .btn {
   margin-bottom: 16rpx;
 }
