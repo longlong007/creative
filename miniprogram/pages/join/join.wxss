@@ -1,0 +1,29 @@
+.page {
+  padding: 80rpx 48rpx;
+}
+
+.label {
+  color: #8A8178;
+  margin-bottom: 12rpx;
+  font-size: 28rpx;
+}
+
+.input {
+  height: 108rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 32rpx;
+  padding: 0 28rpx;
+  box-sizing: border-box;
+}
+
+.input.nick {
+  text-align: left;
+  font-size: 32rpx;
+}
+
+.input.code {
+  text-align: center;
+  letter-spacing: 8rpx;
+  font-size: 40rpx;
+}

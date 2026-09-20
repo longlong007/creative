@@ -1,0 +1,57 @@
+<view class="page">
+  <view class="muted range">{{rangeText}}</view>
+
+  <view class="metrics">
+    <view class="card m" wx:for="{{metrics}}" wx:key="key">
+      <text class="mv">{{item.value}}</text>
+      <text class="mk">{{item.label}}</text>
+    </view>
+  </view>
+
+  <view class="card block ai-card">
+    <view class="ai-head">
+      <view class="sheet-title">DeepSeek 分析</view>
+      <view class="think {{thinking ? 'on' : ''}}" bindtap="toggleThinking">{{thinking ? '深度思考开' : '深度思考'}}</view>
+    </view>
+    <view class="muted ai-desc">看规律和漏记，非诊断。</view>
+    <view class="chip-row">
+      <view
+        wx:for="{{aiRanges}}"
+        wx:key="key"
+        class="chip {{aiRange === item.key ? 'on' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="setRange"
+      >{{item.label}}</view>
+    </view>
+    <button class="btn btn-primary ai-btn" loading="{{analyzing}}" disabled="{{analyzing}}" bindtap="runAnalyze">
+      {{analyzing ? '分析中' : '分析'}}
+    </button>
+    <view class="ai-error" wx:if="{{aiError}}">{{aiError}}</view>
+
+    <view class="ai-result" wx:if="{{aiParagraphs.length}}">
+      <view class="ai-meta">{{aiMeta}}</view>
+      <view class="p" user-select wx:for="{{aiParagraphs}}" wx:key="*this">{{item}}</view>
+      <view class="link" bindtap="copyResult">复制分析</view>
+    </view>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">本周速览</view>
+    <view class="p" wx:for="{{paragraphs}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block" wx:if="{{highlights.length}}">
+    <view class="section-title">亮点</view>
+    <view class="li" wx:for="{{highlights}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block" wx:if="{{suggestions.length}}">
+    <view class="section-title">建议</view>
+    <view class="li" wx:for="{{suggestions}}" wx:key="*this">{{item}}</view>
+  </view>
+
+  <view class="card block">
+    <view class="section-title">复制给其他 AI</view>
+    <button class="btn btn-ghost alt-btn" bindtap="copyPrompt">复制提示词</button>
+  </view>
+</view>

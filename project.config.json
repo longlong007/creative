@@ -1,0 +1,55 @@
+{
+  "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "srcMiniprogramRoot": "miniprogram/",
+  "compileType": "miniprogram",
+  "appid": "wxf54487f1e66562c9",
+  "projectname": "xiaoya-ji",
+  "libVersion": "3.8.8",
+  "packOptions": {
+    "ignore": [
+      {
+        "value": "tests",
+        "type": "folder"
+      },
+      {
+        "value": "package.json",
+        "type": "file"
+      }
+    ],
+    "include": []
+  },
+  "setting": {
+    "es6": true,
+    "enhance": true,
+    "minified": true,
+    "postcss": true,
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "coverView": true,
+    "packNpmRelationList": [],
+    "ignoreDevUnusedFiles": true,
+    "ignoreUploadUnusedFiles": true,
+    "compileHotReLoad": true,
+    "skylineRenderEnable": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "useCompilerPlugins": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": false
+  },
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
+  "simulatorPluginLibVersion": {}
+}

@@ -1,0 +1,86 @@
+<view class="page safe-bottom">
+  <view class="card identity-card" bindtap="openNickEdit">
+    <view class="avatar identity">{{nickInitial}}</view>
+    <view class="meta">
+      <view class="name">{{displayNick}}</view>
+    </view>
+    <text class="edit" wx:if="{{baby}}">改名</text>
+  </view>
+
+  <block wx:if="{{baby}}">
+    <view class="card baby-card" bindtap="goEditBaby">
+      <view class="avatar {{baby.gender === 'boy' ? 'boy' : 'girl'}}">{{baby.name[0]}}</view>
+      <view class="meta">
+        <view class="name">{{baby.name}}</view>
+        <view class="muted">{{ageText}} · {{baby.birthday}}</view>
+      </view>
+      <text class="edit">编辑</text>
+    </view>
+
+    <view class="card block">
+      <view class="section-title">家庭邀请码</view>
+      <view class="code">{{family.inviteCode}}</view>
+      <view class="muted small" wx:if="{{mode !== 'cloud'}}">本机记录</view>
+      <view class="muted small" wx:else>发给家人加入</view>
+      <view class="row-btns">
+        <button class="btn btn-primary mini" wx:if="{{mode !== 'cloud' && cloudReady}}" bindtap="enableCloud">开通家庭同步</button>
+        <button class="btn btn-primary mini" bindtap="copyCode">复制邀请码</button>
+        <button class="btn mini ghost" bindtap="goJoin">加入别人的家</button>
+      </view>
+    </view>
+
+    <view class="card block">
+      <view class="section-title">这本账里的人</view>
+      <view
+        class="member {{item.id === userId || item._openid === userId ? 'mine' : ''}}"
+        wx:for="{{members}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onMemberTap"
+      >
+        <text>{{item.nickName}}</text>
+        <text class="muted">{{item.role}}</text>
+      </view>
+      <view class="danger-link" bindtap="leaveAccount">退出家庭并删除账号</view>
+    </view>
+
+    <view class="card block">
+      <view class="section-title">宝宝</view>
+      <view
+        class="member"
+        wx:for="{{babies}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="switchBaby"
+      >
+        <text>{{item.name}}</text>
+        <text class="muted">{{item.id === baby.id ? '当前' : '切换'}}</text>
+      </view>
+      <view class="link" bindtap="addBaby">添加宝宝</view>
+    </view>
+
+    <view class="card block">
+      <view class="section-title">数据和 AI</view>
+      <view class="link" bindtap="goInsights">DeepSeek 分析</view>
+      <view class="link" bindtap="exportData">导出记录</view>
+    </view>
+  </block>
+
+  <view class="guest-block" wx:else>
+    <button class="btn btn-primary" bindtap="goOnboarding">给宝宝建一本</button>
+    <button class="btn btn-ghost" bindtap="goJoin">我有邀请码</button>
+  </view>
+
+  <view class="tab-space"></view>
+</view>
+
+<view class="nick-mask" wx:if="{{nickEditOpen}}" catchtouchmove="noop">
+  <view class="nick-sheet">
+    <view class="nick-title">改昵称</view>
+    <input class="input nick-input" maxlength="12" value="{{nickDraft}}" bindinput="onNickDraft" focus="{{nickEditOpen}}" />
+    <view class="nick-actions">
+      <button class="btn btn-ghost nick-btn" bindtap="closeNickEdit">取消</button>
+      <button class="btn btn-primary nick-btn" bindtap="saveNick">保存</button>
+    </view>
+  </view>
+</view>
