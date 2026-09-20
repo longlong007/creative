@@ -15,17 +15,37 @@ async function familyIdOf(db, rec) {
 
 async function assertMember(db, openid, familyId) {
   if (!familyId) throw new Error('无权改这条记录')
-  const members = await db.collection('xiaoya_members').where({
-    _openid: openid,
-    familyId
-  }).limit(1).get()
+  const members = await db
+    .collection('xiaoya_members')
+    .where({
+      _openid: openid,
+      familyId
+    })
+    .limit(1)
+    .get()
   if (!members.data.length) throw new Error('无权改这条记录')
+  return members.data[0]
 }
 
 exports.main = async (event) => {
   const db = cloud.database()
   const { OPENID } = cloud.getWXContext()
   const action = event && event.action
+
+  if (action === 'add') {
+    const record = (event && event.record) || {}
+    const familyId = record.familyId || ''
+    await assertMember(db, OPENID, familyId)
+    const data = Object.assign({}, record)
+    delete data.id
+    delete data._id
+    data.createdBy = OPENID
+    if (!data.createdAt) data.createdAt = Date.now()
+    if (!data.updatedAt) data.updatedAt = data.createdAt
+    const res = await db.collection('xiaoya_records').add({ data })
+    return { ok: true, id: res._id }
+  }
+
   const id = event && event.id
   if (!id) throw new Error('缺少记录')
 

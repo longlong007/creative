@@ -58,6 +58,11 @@ exports.main = async (event) => {
     await removeByIds(db, 'xiaoya_babies', babyIds)
     await removeAllWhere(db, 'xiaoya_members', { familyId })
     await db.collection('xiaoya_families').doc(familyId).remove()
+    try {
+      await db.collection('xiaoya_users').doc(OPENID).update({
+        data: { currentFamilyId: '', lastSeenAt: Date.now() }
+      })
+    } catch (e) {}
     return { ok: true, action: 'dissolve', familyId }
   }
 
@@ -73,5 +78,11 @@ exports.main = async (event) => {
   }
 
   await db.collection('xiaoya_members').doc(decision.me._id).remove()
+  try {
+    await db.collection('xiaoya_users').doc(OPENID).update({
+      data: { currentFamilyId: '', lastSeenAt: Date.now() }
+    })
+  } catch (e) {}
   return { ok: true, action: decision.action, familyId }
 }
+

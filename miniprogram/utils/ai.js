@@ -81,10 +81,13 @@ async function analyze({ payload, model, thinking }) {
 
   if (db.cloudReady && typeof wx !== 'undefined' && wx.cloud) {
     try {
+      const snap = db.snapshot()
+      const familyId = (snap.family && snap.family.id) || payload.familyId || ''
       const res = await wx.cloud.callFunction({
         name: 'aiAnalyze',
         data: {
-          payload,
+          payload: Object.assign({}, payload, { familyId }),
+          familyId,
           model: allowedModel(model || config.deepseekModel),
           thinking: Boolean(thinking)
         }

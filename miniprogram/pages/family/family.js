@@ -23,7 +23,9 @@ Page({
     displayNick: '匿名用户',
     nickInitial: '匿',
     nickEditOpen: false,
-    nickDraft: ''
+    nickDraft: '',
+    authStatus: 'guest',
+    authLabel: '未建账'
   },
 
   async onShow() {
@@ -46,7 +48,9 @@ Page({
       cloudReady: snap.cloudReady || Boolean(config.cloudEnv),
       userId: (snap.user && snap.user.id) || '',
       displayNick: nick,
-      nickInitial: nickInitial(nick)
+      nickInitial: nickInitial(nick),
+      authStatus: snap.authStatus || 'guest',
+      authLabel: snap.authStatus === 'cloud' ? '已同步' : (snap.authStatus === 'local' ? '本机账本' : '未建账')
     })
   },
 
@@ -172,6 +176,7 @@ Page({
     wx.navigateTo({ url: '/pages/insights/insights' })
   },
 
+
   leaveConfirmContent() {
     const members = this.data.members || []
     if (members.length <= 1) {
@@ -189,21 +194,43 @@ Page({
     return '退出后你不能再看这本账。别人还在，记录会留下。'
   },
 
-  leaveAccount() {
+  logout() {
     wx.showModal({
-      title: '退出家庭并删除账号',
+      title: '退出登录',
+      content: '只退出本机登录。云端家庭和记录还在，下次可再开通同步或加入。',
+      confirmText: '退出登录',
+      cancelText: '取消',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '退出中' })
+        try {
+          await db.logout()
+          wx.hideLoading()
+          this.refresh()
+          wx.showToast({ title: '已退出登录', icon: 'success' })
+        } catch (e) {
+          wx.hideLoading()
+          wx.showToast({ title: e.message || '退出失败', icon: 'none' })
+        }
+      }
+    })
+  },
+
+  leaveFamily() {
+    wx.showModal({
+      title: '退出家庭',
       content: this.leaveConfirmContent(),
-      confirmText: '退出',
+      confirmText: '退出家庭',
       confirmColor: '#B54A3A',
       cancelText: '取消',
       success: async (res) => {
         if (!res.confirm) return
         wx.showLoading({ title: '退出中' })
         try {
-          await db.leaveAccount()
+          await db.leaveFamily()
           wx.hideLoading()
           this.refresh()
-          wx.showToast({ title: '已退出', icon: 'success' })
+          wx.showToast({ title: '已退出家庭', icon: 'success' })
         } catch (e) {
           wx.hideLoading()
           wx.showModal({
@@ -212,6 +239,29 @@ Page({
             showCancel: false,
             confirmText: '知道了'
           })
+        }
+      }
+    })
+  },
+
+  clearLocalBook() {
+    wx.showModal({
+      title: '清除本机账本',
+      content: '只删除这台手机上的本地记录，不会影响云端。',
+      confirmText: '清除',
+      confirmColor: '#B54A3A',
+      cancelText: '取消',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '清除中' })
+        try {
+          await db.clearLocalBook()
+          wx.hideLoading()
+          this.refresh()
+          wx.showToast({ title: '已清除', icon: 'success' })
+        } catch (e) {
+          wx.hideLoading()
+          wx.showToast({ title: e.message || '清除失败', icon: 'none' })
         }
       }
     })

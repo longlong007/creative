@@ -440,6 +440,61 @@ async function run() {
     assert(threw)
   })
 
+  
+  await test('authStatus guest/local/cloud', async () => {
+    await db.init()
+    await db.resetLocal()
+    assertEq(db.snapshot().authStatus, 'guest')
+    await db.createFamilyAndBaby({
+      nickName: '妈妈',
+      babyName: '小芽',
+      birthday: '2026-01-01',
+      gender: 'girl'
+    })
+    assertEq(db.snapshot().authStatus, 'local')
+    assertEq(db.snapshot().mode, 'local')
+  })
+
+  await test('clearLocalBook only works for local', async () => {
+    await db.init()
+    await db.resetLocal()
+    await db.createFamilyAndBaby({
+      nickName: '妈妈',
+      babyName: '小芽',
+      birthday: '2026-01-01',
+      gender: 'girl'
+    })
+    await db.clearLocalBook()
+    assertEq(db.snapshot().authStatus, 'guest')
+    assert(!db.hasBaby())
+  })
+
+  await test('logout rejects when not cloud', async () => {
+    await db.init()
+    await db.resetLocal()
+    let threw = false
+    try {
+      await db.logout()
+    } catch (e) {
+      threw = true
+    }
+    assert(threw)
+  })
+
+  await test('leaveFamily alias leaveAccount clears local', async () => {
+    await db.init()
+    await db.resetLocal()
+    await db.createFamilyAndBaby({
+      nickName: '妈妈',
+      babyName: '小芽',
+      birthday: '2026-01-01',
+      gender: 'girl'
+    })
+    await db.leaveFamily()
+    assertEq(db.snapshot().authStatus, 'guest')
+    assert(!db.hasBaby())
+  })
+
   await test('nickName flows to member and new records', async () => {
     await db.init()
     await db.resetLocal()

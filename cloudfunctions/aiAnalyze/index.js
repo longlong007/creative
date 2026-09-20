@@ -75,7 +75,25 @@ function pickText(json) {
   return ''
 }
 
+async function assertFamilyMember(familyId) {
+  if (!familyId) throw new Error('未登录家庭，无法分析')
+  const db = cloud.database()
+  const { OPENID } = cloud.getWXContext()
+  const members = await db.collection('xiaoya_members').where({
+    _openid: OPENID,
+    familyId
+  }).limit(1).get()
+  if (!members.data.length) throw new Error('你不在这个家庭里')
+}
+
 exports.main = async (event) => {
+  try {
+    const familyId = (event && (event.familyId || (event.payload && event.payload.familyId))) || ''
+    await assertFamilyMember(familyId)
+  } catch (err) {
+    return { ok: false, code: 'FORBIDDEN', error: err.message || '无权分析' }
+  }
+
   const key = readApiKey()
   if (!key) {
     return { ok: false, code: 'NO_KEY', error: '还没有配置 DeepSeek 密钥。请在云函数环境变量里设置 DEEPSEEK_API_KEY。' }

@@ -3,6 +3,7 @@
     <view class="avatar identity">{{nickInitial}}</view>
     <view class="meta">
       <view class="name">{{displayNick}}</view>
+      <view class="muted small">{{authLabel}}</view>
     </view>
     <text class="edit" wx:if="{{baby}}">改名</text>
   </view>
@@ -41,7 +42,11 @@
         <text>{{item.nickName}}</text>
         <text class="muted">{{item.role}}</text>
       </view>
-      <view class="danger-link" bindtap="leaveAccount">退出家庭并删除账号</view>
+      <block wx:if="{{authStatus === 'cloud'}}">
+        <view class="danger-link" bindtap="logout">退出登录</view>
+        <view class="danger-link" bindtap="leaveFamily">退出家庭</view>
+      </block>
+      <view class="danger-link" wx:if="{{authStatus === 'local'}}" bindtap="clearLocalBook">清除本机账本</view>
     </view>
 
     <view class="card block">
@@ -69,6 +74,7 @@
   <view class="guest-block" wx:else>
     <button class="btn btn-primary" bindtap="goOnboarding">给宝宝建一本</button>
     <button class="btn btn-ghost" bindtap="goJoin">我有邀请码</button>
+    <button class="btn btn-ghost" wx:if="{{cloudReady}}" bindtap="enableCloud">恢复家庭同步</button>
   </view>
 
   <view class="tab-space"></view>

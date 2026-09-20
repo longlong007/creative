@@ -1,6 +1,7 @@
 const config = require('../config')
 const { uid, inviteCode } = require('./id')
 const { SOLID_FOODS, mergeSolidFoods } = require('./constants')
+const auth = require('./auth')
 
 const STORAGE_KEY = 'xiaoya_db_v1'
 const ANON_NICK = '匿名用户'
@@ -62,17 +63,21 @@ class Database {
       try {
         wx.cloud.init({ env: config.cloudEnv, traceUser: true })
         this.cloudReady = true
+        const session = auth.readSession()
         const storedFamilyId =
-          (wx.getStorageSync && wx.getStorageSync('xiaoya_current_family')) || ''
-        if (storedFamilyId) {
-          const hasCloudFamily = await this._loadCloud(storedFamilyId)
-          if (hasCloudFamily) {
+          (session && session.familyId) ||
+          (wx.getStorageSync && wx.getStorageSync('xiaoya_current_family')) ||
+          ''
+        if (session && session.openid && storedFamilyId) {
+          const loaded = await this._loadCloud(storedFamilyId)
+          if (loaded) {
             this.mode = 'cloud'
             this.ready = true
             this._startRecordWatch()
             this._notify()
             return this
           }
+          auth.clearSession()
         }
       } catch (err) {
         console.warn('cloud init failed, fallback to local', err)
@@ -97,6 +102,7 @@ class Database {
     return {
       mode: this.mode,
       cloudReady: this.cloudReady,
+      authStatus: auth.authStatus(this.mode, this.hasBaby()),
       user: this.state.user,
       family: this.state.family,
       members: this.state.members.slice(),
@@ -177,10 +183,35 @@ class Database {
     }
   }
 
+
+  async _callFamilyManage(data) {
+    try {
+      const res = await wx.cloud.callFunction({ name: 'manageFamily', data })
+      if (res.result && res.result.ok === false) {
+        throw new Error(res.result.error || '操作失败')
+      }
+      return res.result
+    } catch (err) {
+      const msg = String((err && (err.errMsg || err.message)) || '')
+      if (/FUNCTION_NOT_FOUND|cannot find/i.test(msg)) {
+        throw new Error('请先上传云函数 manageFamily')
+      }
+      throw err
+    }
+  }
+
   async _loadCloud(preferredFamilyId) {
     const db = wx.cloud.database()
+    // 成员资格以云函数为准，避免客户端按 _openid 查 members（收紧规则后不合法）
     const login = await wx.cloud.callFunction({ name: 'xiaoyaLogin' })
-    const openid = (login.result && login.result.openid) || ''
+    const result = (login && login.result) || {}
+    const openid = result.openid || ''
+    const userInfo = result.user || {}
+    const membership = result.membership || null
+    if (userInfo.status && userInfo.status !== 'active') {
+      auth.clearSession()
+      return false
+    }
     this.state.user = {
       id: openid,
       nickName: ANON_NICK,
@@ -188,21 +219,33 @@ class Database {
       role: '家长'
     }
 
-    const memberRes = await db.collection('xiaoya_members').where({ _openid: openid }).get()
-    if (!memberRes.data.length) return false
+    if (!membership || !membership.familyId) {
+      auth.clearSession()
+      return false
+    }
+
+    const session = auth.readSession()
     const storedFamilyId =
       preferredFamilyId ||
+      (userInfo && userInfo.currentFamilyId) ||
+      (session && session.familyId) ||
       (typeof wx !== 'undefined' && wx.getStorageSync && wx.getStorageSync('xiaoya_current_family')) ||
       ''
-    let member = memberRes.data[0]
-    if (storedFamilyId) {
-      member = memberRes.data.find((m) => m.familyId === storedFamilyId) || member
-    } else if (memberRes.data.length > 1) {
-      member = memberRes.data.slice().sort((a, b) => (b.joinedAt || 0) - (a.joinedAt || 0))[0]
+    // 一人一家：以云函数返回的 membership 为准；preferred / currentFamilyId 仅作校验
+    if (storedFamilyId && storedFamilyId !== membership.familyId) {
+      auth.clearSession()
+      return false
     }
-    const familyId = member.familyId
-    this.state.user.nickName = member.nickName || ANON_NICK
-    this.state.user.role = member.role || '家长'
+    const familyId = membership.familyId
+    this.state.user.nickName = membership.nickName || userInfo.nickName || ANON_NICK
+    this.state.user.role = membership.role || '家长'
+    auth.writeSession({
+      openid,
+      familyId,
+      nickName: this.state.user.nickName,
+      role: this.state.user.role,
+      loggedInAt: Date.now()
+    })
     if (typeof wx !== 'undefined' && wx.setStorageSync) {
       wx.setStorageSync('xiaoya_current_family', familyId)
     }
@@ -233,13 +276,16 @@ class Database {
       this.state.records = []
       return
     }
+    const familyId = baby.familyId || (this.state.family && this.state.family.id) || ''
     const db = wx.cloud.database()
     const PAGE = 20
     let all = []
     for (let i = 0; i < 10; i++) {
+      // 查询必须带 familyId，才能满足收紧后的安全规则子集
+      const where = familyId ? { familyId, babyId: baby.id } : { babyId: baby.id }
       const res = await db
         .collection('xiaoya_records')
-        .where({ babyId: baby.id })
+        .where(where)
         .orderBy('startAt', 'desc')
         .skip(i * PAGE)
         .limit(PAGE)
@@ -293,10 +339,12 @@ class Database {
     if (this._recordWatcher && this._watchedBabyId === baby.id) return
     this._stopRecordWatch()
     this._watchedBabyId = baby.id
+    const familyId = baby.familyId || (this.state.family && this.state.family.id) || ''
     const cloudDb = wx.cloud.database()
     try {
+      const where = familyId ? { familyId, babyId: baby.id } : { babyId: baby.id }
       this._recordWatcher = cloudDb.collection('xiaoya_records')
-        .where({ babyId: baby.id })
+        .where(where)
         .watch({
           onChange: (snapshot) => {
             this._onRecordWatchChange(snapshot)
@@ -392,12 +440,16 @@ class Database {
       throw new Error('还没开通云开发')
     }
     if (this.mode === 'cloud') return this.snapshot()
-    const baby = this.currentBaby()
-    if (!baby || !this.state.family) throw new Error('请先给宝宝建一本')
 
-    const localRecords = this.state.records.slice()
-    const family = this.state.family
-    const existed = await this._loadCloud()
+    // 已有云端成员身份时，直接恢复（例如退出登录后再同步）
+    let existed = false
+    try {
+      existed = await this._loadCloud()
+    } catch (e) {
+      // 尚无用户文档 / 权限未就绪时，继续走 createFamily
+      console.warn('enableCloudSync pre-check failed', e)
+      existed = false
+    }
     if (existed) {
       this.mode = 'cloud'
       this._startRecordWatch()
@@ -405,7 +457,13 @@ class Database {
       return this.snapshot()
     }
 
-    await wx.cloud.callFunction({
+    const baby = this.currentBaby()
+    if (!baby || !this.state.family) throw new Error('请先给宝宝建一本')
+
+    const localRecords = this.state.records.slice()
+    const family = this.state.family
+
+    const created = await wx.cloud.callFunction({
       name: 'createFamily',
       data: {
         familyName: family.name,
@@ -418,7 +476,8 @@ class Database {
         }
       }
     })
-    const ok = await this._loadCloud()
+    const familyId = created.result && created.result.familyId
+    const ok = await this._loadCloud(familyId)
     if (!ok) throw new Error('同步失败，请稍后重试')
     this.mode = 'cloud'
 
@@ -445,17 +504,28 @@ class Database {
     return this.snapshot()
   }
 
-  async joinFamily(code, nickName) {
+
+
+  async joinFamily(code, nickName, options) {
     const normalized = String(code || '').trim().toUpperCase()
     if (!normalized) throw new Error('请输入邀请码')
     const name = normalizeNickName(nickName)
+    const confirmSwitch = Boolean(options && options.confirmSwitch)
 
     if (this.cloudReady) {
       const res = await wx.cloud.callFunction({
         name: 'joinFamily',
-        data: { inviteCode: normalized, nickName: name }
+        data: { inviteCode: normalized, nickName: name, confirmSwitch }
       })
-      const familyId = res.result && res.result.familyId
+      const result = (res && res.result) || {}
+      if (result.needConfirm) {
+        const err = new Error('NEED_CONFIRM')
+        err.code = 'NEED_CONFIRM'
+        err.currentFamilyName = result.currentFamilyName || '当前家庭'
+        err.targetFamilyName = result.targetFamilyName || '新家庭'
+        throw err
+      }
+      const familyId = result.familyId
       if (typeof wx !== 'undefined' && wx.removeStorageSync) {
         wx.removeStorageSync('xiaoya_current_baby')
       }
@@ -480,22 +550,34 @@ class Database {
     return this.snapshot()
   }
 
+
+
   async updateNickName(raw) {
     const name = normalizeNickName(raw)
     this.state.user.nickName = name
     const me = this.state.members.find(
       (m) => m.id === this.state.user.id || m._openid === this.state.user.id
     )
-    if (me) {
-      me.nickName = name
-      if (this.mode === 'cloud' && me.id) {
-        const cloudDb = wx.cloud.database()
-        await cloudDb.collection('xiaoya_members').doc(me.id).update({ data: { nickName: name } })
-      }
+    if (me) me.nickName = name
+    if (this.mode === 'cloud') {
+      const familyId = this.state.family && this.state.family.id
+      await this._callFamilyManage({
+        action: 'updateNickName',
+        familyId,
+        nickName: name
+      })
+      const session = auth.readSession() || {}
+      auth.writeSession(Object.assign({}, session, {
+        openid: this.state.user.id,
+        familyId,
+        nickName: name,
+        role: this.state.user.role
+      }))
     }
     this.persist()
     return this.snapshot()
   }
+
 
   async addBaby(input) {
     const baby = {
@@ -508,9 +590,17 @@ class Database {
       createdAt: Date.now()
     }
     if (this.mode === 'cloud') {
-      const db = wx.cloud.database()
-      const res = await db.collection('xiaoya_babies').add({ data: { ...baby, id: undefined } })
-      baby.id = res._id
+      const res = await this._callFamilyManage({
+        action: 'addBaby',
+        familyId: baby.familyId,
+        baby: {
+          name: baby.name,
+          birthday: baby.birthday,
+          gender: baby.gender,
+          avatar: baby.avatar
+        }
+      })
+      baby.id = res.id
     }
     this.state.babies.push(baby)
     this.state.currentBabyId = baby.id
@@ -527,8 +617,12 @@ class Database {
     if (!baby) return null
     Object.assign(baby, patch, { updatedAt: Date.now() })
     if (this.mode === 'cloud') {
-      const db = wx.cloud.database()
-      await db.collection('xiaoya_babies').doc(id).update({ data: patch })
+      await this._callFamilyManage({
+        action: 'updateBaby',
+        familyId: baby.familyId,
+        id,
+        patch
+      })
     }
     this.persist()
     return baby
@@ -576,11 +670,10 @@ class Database {
     }
 
     if (this.mode === 'cloud') {
-      const db = wx.cloud.database()
       const data = Object.assign({}, rec)
       delete data.id
-      const res = await db.collection('xiaoya_records').add({ data })
-      rec.id = res._id
+      const res = await this._callManage({ action: 'add', record: data })
+      rec.id = res.id
     }
 
     prependRecord(this.state.records, rec)
@@ -645,9 +738,10 @@ class Database {
       if (this.state.family) this.state.family.solidFoods = this.state.solidFoods.slice()
       if (this.mode === 'cloud' && this.state.family && this.state.family.id) {
         try {
-          const cloudDb = wx.cloud.database()
-          await cloudDb.collection('xiaoya_families').doc(this.state.family.id).update({
-            data: { solidFoods: this.state.solidFoods }
+          await this._callFamilyManage({
+            action: 'updateSolidFoods',
+            familyId: this.state.family.id,
+            solidFoods: this.state.solidFoods
           })
         } catch (e) {
           console.warn('solidFoods cloud update failed', e)
@@ -673,6 +767,7 @@ class Database {
   }
 
   _clearFamilyKeys() {
+    auth.clearSession()
     if (typeof wx === 'undefined') return
     if (wx.removeStorageSync) {
       wx.removeStorageSync('xiaoya_current_family')
@@ -680,7 +775,31 @@ class Database {
     }
   }
 
-  async leaveAccount() {
+  async logout() {
+    if (this.mode !== 'cloud') {
+      throw new Error('当前不是云端登录状态')
+    }
+    try {
+      await wx.cloud.callFunction({
+        name: 'xiaoyaLogin',
+        data: { action: 'logout' }
+      })
+    } catch (e) {
+      console.warn('logout cloud clear failed', e)
+    }
+    this._stopRecordWatch()
+    auth.clearSession()
+    this.mode = 'local'
+    this.state = emptyState()
+    if (typeof wx !== 'undefined' && wx.removeStorageSync) {
+      wx.removeStorageSync('xiaoya_current_family')
+      wx.removeStorageSync('xiaoya_current_baby')
+    }
+    this.persist()
+    return this.snapshot()
+  }
+
+  async leaveFamily() {
     if (this.mode === 'cloud') {
       try {
         const familyId = (this.state.family && this.state.family.id) || ''
@@ -707,12 +826,24 @@ class Database {
     return this.snapshot()
   }
 
-  async resetLocal() {
+  async leaveAccount() {
+    return this.leaveFamily()
+  }
+
+  async clearLocalBook() {
+    if (this.mode === 'cloud') {
+      throw new Error('云端账本请用「退出家庭」或「退出登录」')
+    }
     this._stopRecordWatch()
     this.mode = 'local'
     this.state = emptyState()
     this._clearFamilyKeys()
     this.persist()
+    return this.snapshot()
+  }
+
+  async resetLocal() {
+    return this.clearLocalBook()
   }
 }
 

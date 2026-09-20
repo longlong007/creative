@@ -139,3 +139,8 @@
 .nick-btn {
   flex: 1;
 }
+
+.identity-card .muted.small {
+  margin-top: 6rpx;
+  font-size: 22rpx;
+}
